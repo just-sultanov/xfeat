@@ -77,6 +77,22 @@ Remove feature 'JIRA-123'? [y/N] y
 Feature 'JIRA-123' removed.
 ```
 
+### `xfeat init`
+
+Generate shell initialization code with autocompletion and `xf` wrapper function:
+
+```bash
+eval "$(xfeat init zsh)"
+```
+
+**Supported shells:** `zsh`
+
+The `xf` wrapper:
+- `xf new <feature> <repos...>` — creates feature and `cd`s into it
+- `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
+- `xf list` and other commands — proxied to `xfeat`
+- Tab completion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`)
+
 ## Configuration
 
 Set environment variables per-project:
@@ -101,6 +117,7 @@ src/
 ├── cli.rs            # CLI definition (clap)
 ├── config.rs         # Configuration (env vars with defaults)
 ├── error.rs          # Custom error types
+├── init.rs           # Shell initialization code (zsh with completions)
 ├── worktree.rs       # Git worktree operations
 └── commands/
     ├── mod.rs

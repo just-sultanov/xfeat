@@ -30,6 +30,15 @@ Lists all features with their worktrees and current branch names in a tree-like 
 
 Removes a feature directory and its worktrees. Prompts for confirmation by default. Warns about uncommitted changes. Supports `--yes` / `-y` flag to skip confirmation.
 
+### `xfeat init <shell>`
+
+Generates shell initialization code for `eval`. Currently supports `zsh`.
+
+The generated code provides:
+- `xf` wrapper function that proxies to `xfeat` and `cd`s into/out of feature directories
+- Tab completion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`)
+- Uses `XF_REPOS_DIR` / `XF_FEATURES_DIR` env vars with defaults from `config.rs` constants
+
 ## Project Structure
 
 ```
@@ -38,6 +47,7 @@ src/
 ├── cli.rs            # CLI definition (clap)
 ├── config.rs         # Configuration (env vars with defaults)
 ├── error.rs          # Custom error types
+├── init.rs           # Shell initialization code (zsh with completions)
 ├── worktree.rs       # Git worktree operations
 └── commands/
     ├── mod.rs
@@ -84,23 +94,21 @@ If worktree creation fails for any repository — remove all already-created wor
 
 ## Testing
 
-- 32 tests total (8 for `new`, 12 for `list`, 4 for `config`, 4 for `remove`)
+- 36 tests total (8 for `new`, 12 for `list`, 4 for `config`, 6 for `init`, 4 for `remove`)
 - `TestEnv` fixture struct with `Drop` for automatic cleanup
 - Tests verify: directory creation, worktree links, branch names, error cases, rollback
 
-## Planned Features
+## Implemented Features
 
 ### Shell Wrapper `xf`
 
-- Bash/zsh/fish script that:
-  - Calls `xfeat new "$@"` to create
-  - On success — `cd` into feature directory
-  - On `delete` — `cd` out if currently in the feature directory
+- Zsh script generated via `xfeat init zsh`:
+  - Calls `xfeat new "$@"` to create, then `cd` into feature directory
+  - On `remove` — `cd` out if currently in the feature directory (with confirmation prompt)
   - For other commands — proxy to `xfeat`
-- Autocompletion for repository names (directory listing from `XF_REPOS_DIR`)
-- Implemented via `xfeat init <shell>` command that outputs shell code for `eval`
+  - Autocompletion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`)
+  - Uses constants from `config.rs` for env var names and defaults
 
 ### Future Commands
 
-- `xfeat delete <feature-name>` — remove feature worktrees
 - `xfeat status` — show git status across all worktrees in a feature
