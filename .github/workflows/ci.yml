@@ -45,6 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v4
+      - run: rustup target add x86_64-apple-darwin
       - run: mise run build-macos
       - uses: actions/upload-artifact@v7
         with:
@@ -60,6 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v4
+      - run: rustup target add x86_64-pc-windows-gnu
       - run: mise run build-windows
       - uses: actions/upload-artifact@v7
         with:
