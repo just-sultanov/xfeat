@@ -20,4 +20,7 @@ pub enum Commands {
         /// Repositories to include in the feature
         repos: Vec<String>,
     },
+
+    /// List all features with their worktrees
+    List,
 }

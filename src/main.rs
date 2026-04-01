@@ -18,6 +18,9 @@ fn main() -> Result<()> {
         } => {
             commands::new::run(&feature_name, &repos, &config)?;
         }
+        cli::Commands::List => {
+            commands::list::run(&config)?;
+        }
     }
 
     Ok(())
