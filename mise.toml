@@ -1,5 +1,12 @@
+[env]
+_.path = [{ path = "./bin", tools = true }]
+
 [tools]
 rust = { version = "1.94.1", components = "rustfmt,clippy" }
+
+[tasks.clean]
+description = "Cleanup"
+run = ["cargo clean"]
 
 [tasks.lint]
 description = "Run formatters and linters"
