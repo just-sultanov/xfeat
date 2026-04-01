@@ -26,7 +26,7 @@ fn generate_zsh_init() -> String {
       local current_dir="$(pwd)"
       local features_dir="${__ENV_FEATURES_DIR__:-__DEFAULT_FEATURES_DIR__}"
       local target_dir="$features_dir/$feature"
-      xfeat remove "$feature" --yes "$@" || return
+      xfeat remove "$feature" "$@" || return
       if [ "$current_dir" = "$target_dir" ]; then
         cd "$features_dir"
       fi
@@ -138,10 +138,10 @@ mod tests {
     }
 
     #[test]
-    fn test_init_zsh_passes_yes_flag_for_remove() {
+    fn test_init_zsh_remove_does_not_force_yes() {
         assert!(
-            zsh_init().contains("--yes"),
-            "zsh init code should pass --yes flag for remove"
+            !zsh_init().contains("--yes"),
+            "zsh init code should not pass --yes flag for remove (user should confirm)"
         );
     }
 
