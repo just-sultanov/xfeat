@@ -6,5 +6,11 @@ description = "CLI utility for managing git worktrees across multiple repositori
 license-file = "LICENSE"
 authors = ["Ilshat Sultanov <ilshat@sultanov.team>"]
 repository = "https://github.com/just-sultanov/xfeat"
+keywords = ["git", "worktree", "cli"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+shellexpand = "3"
+thiserror = "2"

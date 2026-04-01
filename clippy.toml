@@ -1,0 +1,19 @@
+# Clippy configuration
+# See: https://doc.rust-lang.org/clippy/lint_configuration.html
+
+# Disallowed methods - prevent usage of unsafe/panic-inducing functions
+disallowed-methods = [
+    { path = "std::panic::panic_any", reason = "use anyhow::bail! or panic! with a message instead" },
+]
+
+# Lint configuration
+allow-unwrap-in-tests = true
+
+# Maximum cognitive complexity for functions
+cognitive-complexity-threshold = 25
+
+# Maximum number of arguments for functions
+too-many-arguments-threshold = 7
+
+# Warn on large enum variants
+enum-variant-size-threshold = 200
