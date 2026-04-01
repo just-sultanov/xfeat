@@ -14,11 +14,23 @@ impl Config {
             shellexpand::env(&var_or_default("XF_FEATURES_DIR", "~/workspace/features"))?
                 .into_owned();
 
+        let repos_dir = make_absolute(PathBuf::from(repos_dir))?;
+        let features_dir = make_absolute(PathBuf::from(features_dir))?;
+
         Ok(Self {
-            repos_dir: PathBuf::from(repos_dir),
-            features_dir: PathBuf::from(features_dir),
+            repos_dir,
+            features_dir,
         })
     }
+}
+
+fn make_absolute(path: PathBuf) -> anyhow::Result<PathBuf> {
+    if path.is_absolute() {
+        return Ok(path);
+    }
+    std::env::current_dir()
+        .map(|cwd| cwd.join(&path))
+        .map_err(|e| anyhow::anyhow!("cannot resolve path '{}': {}", path.display(), e))
 }
 
 fn var_or_default(key: &str, default: &str) -> String {
