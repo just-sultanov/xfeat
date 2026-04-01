@@ -21,6 +21,9 @@ fn main() -> Result<()> {
         cli::Commands::List => {
             commands::list::run(&config)?;
         }
+        cli::Commands::Remove { feature_name, yes } => {
+            commands::remove::run(&feature_name, yes, &config)?;
+        }
     }
 
     Ok(())

@@ -23,4 +23,14 @@ pub enum Commands {
 
     /// List all features with their worktrees
     List,
+
+    /// Remove a feature and its worktrees
+    Remove {
+        /// Name of the feature to remove
+        feature_name: String,
+
+        /// Skip confirmation prompt
+        #[arg(short, long)]
+        yes: bool,
+    },
 }

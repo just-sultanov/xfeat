@@ -26,6 +26,10 @@ Creates a feature directory with git worktrees for each specified repository.
 
 Lists all features with their worktrees and current branch names in a tree-like format.
 
+### `xfeat remove <feature-name>`
+
+Removes a feature directory and its worktrees. Prompts for confirmation by default. Warns about uncommitted changes. Supports `--yes` / `-y` flag to skip confirmation.
+
 ## Project Structure
 
 ```
@@ -38,7 +42,8 @@ src/
 └── commands/
     ├── mod.rs
     ├── new.rs        # Implementation of `new` command
-    └── list.rs       # Implementation of `list` command
+    ├── list.rs       # Implementation of `list` command
+    └── remove.rs     # Implementation of `remove` command
 ```
 
 ## Dependencies
@@ -79,7 +84,7 @@ If worktree creation fails for any repository — remove all already-created wor
 
 ## Testing
 
-- 24 tests total (8 for `new`, 12 for `list`, 4 for `config`)
+- 32 tests total (8 for `new`, 12 for `list`, 4 for `config`, 4 for `remove`)
 - `TestEnv` fixture struct with `Drop` for automatic cleanup
 - Tests verify: directory creation, worktree links, branch names, error cases, rollback
 

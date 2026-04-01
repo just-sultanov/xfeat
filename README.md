@@ -57,6 +57,26 @@ xfeat list
     └── service-1 (JIRA-456)
 ```
 
+### `xfeat remove`
+
+Remove a feature and its worktrees. Prompts for confirmation by default:
+
+```bash
+xfeat remove <feature-name>
+xfeat remove <feature-name> --yes   # skip confirmation
+```
+
+**Example output:**
+
+```
+Feature 'JIRA-123' contains:
+  - service-1 (JIRA-123)
+  - service-2 (JIRA-123) ⚠ has uncommitted changes
+
+Remove feature 'JIRA-123'? [y/N] y
+Feature 'JIRA-123' removed.
+```
+
 ## Configuration
 
 Set environment variables per-project:
@@ -85,7 +105,8 @@ src/
 └── commands/
     ├── mod.rs
     ├── new.rs        # Implementation of `new` command
-    └── list.rs       # Implementation of `list` command
+    ├── list.rs       # Implementation of `list` command
+    └── remove.rs     # Implementation of `remove` command
 ```
 
 ## License
