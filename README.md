@@ -14,19 +14,11 @@ By leveraging git worktrees, `xfeat` enables parallel development on multiple fe
 cargo install --path .
 ```
 
-## Usage
+## Commands
 
-### Shell Wrapper
+### `xfeat new`
 
-Use the `xf` shell wrapper (bash/zsh/fish) for automatic directory switching after feature creation:
-
-```bash
-xf JIRA-123-fix-issue service-1 service-2 lib-1
-```
-
-This creates the feature worktrees and `cd`s into the feature directory automatically.
-
-### Direct CLI
+Create a new feature with worktrees for specified repositories:
 
 ```bash
 xfeat new <feature-name> <repos...>
@@ -47,6 +39,24 @@ This creates:
 └── lib-1       # worktree on branch JIRA-123-fix-issue
 ```
 
+### `xfeat list`
+
+List all features with their worktrees and current branches:
+
+```bash
+xfeat list
+```
+
+**Example output:**
+
+```
+├── JIRA-123
+│   ├── service-1 (JIRA-123)
+│   └── service-2 (JIRA-123)
+└── JIRA-456
+    └── service-1 (JIRA-456)
+```
+
 ## Configuration
 
 Set environment variables per-project:
@@ -61,33 +71,7 @@ export XF_FEATURES_DIR=~/projects/project-x/features
 | `XF_REPOS_DIR`    | Directory containing source git repositories  | `~/workspace/repos`    |
 | `XF_FEATURES_DIR` | Directory where feature worktrees are created | `~/workspace/features` |
 
-## Shell Autocompletion
-
-The `xf` wrapper includes autocompletion for repository names, sourced from `XF_REPOS_DIR`.
-
-### Bash
-
-```bash
-_xfeat_complete() {
-  local repos_dir="${XF_REPOS_DIR:-~/workspace/repos}"
-  COMPREPLY=( $(compgen -W "$(ls "$repos_dir")" -- "${COMP_WORDS[COMP_CWORD]}") )
-}
-complete -F _xfeat_complete xf
-```
-
-### Zsh
-
-```zsh
-#compdef xf
-local repos=("${(@f)$(ls ${XF_REPOS_DIR:-~/workspace/repos})}")
-_describe 'repos' repos
-```
-
-### Fish
-
-```fish
-complete -c xf -a "(ls $XF_REPOS_DIR 2>/dev/null || ls ~/workspace/repos)"
-```
+Paths can be absolute (`/tmp/repos`), relative (`./repos`), or tilde-based (`~/repos`). All are resolved correctly.
 
 ## Project Structure
 
@@ -99,7 +83,9 @@ src/
 ├── error.rs          # Custom error types
 ├── worktree.rs       # Git worktree operations
 └── commands/
-    └── new.rs        # Implementation of `new` command
+    ├── mod.rs
+    ├── new.rs        # Implementation of `new` command
+    └── list.rs       # Implementation of `list` command
 ```
 
 ## License

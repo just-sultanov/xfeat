@@ -16,6 +16,16 @@ Example project structure:
 └── features/     # Git worktrees for active features
 ```
 
+## Implemented Commands
+
+### `xfeat new <feature-name> <repos...>`
+
+Creates a feature directory with git worktrees for each specified repository.
+
+### `xfeat list`
+
+Lists all features with their worktrees and current branch names in a tree-like format.
+
 ## Project Structure
 
 ```
@@ -26,89 +36,66 @@ src/
 ├── error.rs          # Custom error types
 ├── worktree.rs       # Git worktree operations
 └── commands/
-    └── new.rs        # Implementation of `new` command
+    ├── mod.rs
+    ├── new.rs        # Implementation of `new` command
+    └── list.rs       # Implementation of `list` command
 ```
 
 ## Dependencies
 
-| Crate             | Purpose                          |
-| ----------------- | -------------------------------- |
-| `clap` (derive)   | CLI argument parsing             |
-| `thiserror`       | Custom error types               |
-| `anyhow`          | Application-level error handling |
-| `shellexpand`     | Expand `~` in paths              |
-| `path-absolutize` | Absolute path handling           |
+| Crate           | Purpose                          |
+| --------------- | -------------------------------- |
+| `clap` (derive) | CLI argument parsing             |
+| `thiserror`     | Custom error types               |
+| `anyhow`        | Application-level error handling |
+| `shellexpand`   | Expand `~` and env vars in paths |
 
-## CLI Interface
-
-```
-xfeat new <feature-name> <repos...>
-```
-
-## Implementation Steps
-
-### 1. Project Setup
-
-- Add dependencies to `Cargo.toml`
-- Create module structure
-
-### 2. `config.rs` — Configuration
+## Configuration
 
 - `Config` struct with `repos_dir` and `features_dir` fields
 - Read from env vars `XF_REPOS_DIR` / `XF_FEATURES_DIR`
 - Defaults: `~/workspace/repos`, `~/workspace/features`
+- Supports absolute (`/tmp/repos`), relative (`./repos`), and tilde (`~/repos`) paths
 - Expand `~` via `shellexpand`
+- Env var names defined as constants in `config.rs`
 
-### 3. `error.rs` — Error Types
+## Error Types
 
 - `Error::RepoNotFound` — repository not found in repos_dir
 - `Error::WorktreeExists` — worktree already exists
 - `Error::GitCommand` — git command execution failed
 - `Error::Io` — filesystem error
 
-### 4. `cli.rs` — CLI Definition
-
-- `Cli` struct with `#[command(subcommand)]`
-- `Commands::New { feature_name: String, repos: Vec<String> }`
-
-### 5. `worktree.rs` — Git Worktree Logic
+## Git Worktree Logic
 
 - `fn create_worktree(source_repo: &Path, worktree_path: &Path, branch: &str) -> Result<()>`
 - Execute `git worktree add <path> -b <branch>` via `std::process::Command`
+- Paths are resolved to absolute before calling git (fixes relative path issues)
 - Validate that source is a git repository
-
-### 6. `commands/new.rs` — `new` Command
-
-- Validate: all specified repos exist in `repos_dir`
-- Check: feature directory does not already exist
-- Create feature directory
-- For each repo: create worktree with new branch
-- On error: rollback (remove created worktrees)
-
-### 7. `main.rs` — Entry Point
-
-- Initialize clap
-- Load config
-- Dispatch to command
-- Print errors and exit code
-
-### 8. Shell Wrapper `xf`
-
-- Bash/zsh/fish script that:
-  - Calls `xfeat new "$@"` to create
-  - On success — `cd` into feature directory
-  - Prints final path
-- Autocompletion for repository names (directory listing from `XF_REPOS_DIR`):
-  - **Bash**: `complete -F _xfeat_complete xf` with `compgen -W "$(ls "$XF_REPOS_DIR")"`
-  - **Zsh**: `_describe 'repos' repos` via `#compdef xf`
-  - **Fish**: `complete -c xf -a "(ls $XF_REPOS_DIR 2>/dev/null || ls ~/workspace/repos)"`
-
-## Git Worktree Example
-
-```bash
-git -C ~/workspace/repos/service-1 worktree add ~/workspace/features/JIRA-123-fix-issue/service-1 -b JIRA-123-fix-issue
-```
 
 ## Rollback Strategy
 
 If worktree creation fails for any repository — remove all already-created worktrees and the feature directory to avoid leaving a partial state.
+
+## Testing
+
+- 24 tests total (8 for `new`, 12 for `list`, 4 for `config`)
+- `TestEnv` fixture struct with `Drop` for automatic cleanup
+- Tests verify: directory creation, worktree links, branch names, error cases, rollback
+
+## Planned Features
+
+### Shell Wrapper `xf`
+
+- Bash/zsh/fish script that:
+  - Calls `xfeat new "$@"` to create
+  - On success — `cd` into feature directory
+  - On `delete` — `cd` out if currently in the feature directory
+  - For other commands — proxy to `xfeat`
+- Autocompletion for repository names (directory listing from `XF_REPOS_DIR`)
+- Implemented via `xfeat init <shell>` command that outputs shell code for `eval`
+
+### Future Commands
+
+- `xfeat delete <feature-name>` — remove feature worktrees
+- `xfeat status` — show git status across all worktrees in a feature
