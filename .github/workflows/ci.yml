@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mise run lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mise run test
+
+  build-linux:
+    name: Build (Linux x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mise run build-linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xfeat-x86_64-unknown-linux-gnu
+          path: target/x86_64-unknown-linux-gnu/release/xfeat
+          if-no-files-found: error
+
+  build-macos:
+    name: Build (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mise run build-macos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xfeat-macos
+          path: |
+            target/aarch64-apple-darwin/release/xfeat
+            target/x86_64-apple-darwin/release/xfeat
+          if-no-files-found: error
+
+  build-windows:
+    name: Build (Windows x86_64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mise run build-windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xfeat-x86_64-pc-windows-gnu
+          path: target/x86_64-pc-windows-gnu/release/xfeat.exe
+          if-no-files-found: error
