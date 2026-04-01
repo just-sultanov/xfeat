@@ -1,0 +1,41 @@
+[tools]
+rust = "1.94.1"
+
+[tasks.lint]
+description = "Run formatters and linters"
+run = ["cargo fmt -- --check", "cargo clippy -- -D warnings"]
+
+[tasks.test]
+description = "Run all tests"
+run = "cargo test -- --nocapture"
+
+[tasks.check]
+description = "Run lint and tests"
+run = ["mise run lint", "mise run test"]
+
+[tasks.build]
+description = "Build debug binary"
+run = "cargo build"
+
+[tasks.release]
+description = "Build release binary"
+run = "cargo build --release"
+
+[tasks.build-linux]
+description = "Build release binary for Linux x86_64"
+run = "cargo build --release --target x86_64-unknown-linux-gnu"
+
+[tasks.build-macos]
+description = "Build release binary for macOS (aarch64 + x86_64)"
+run = [
+  "cargo build --release --target aarch64-apple-darwin",
+  "cargo build --release --target x86_64-apple-darwin",
+]
+
+[tasks.build-windows]
+description = "Build release binary for Windows x86_64"
+run = "cargo build --release --target x86_64-pc-windows-gnu"
+
+[tasks.build-all]
+description = "Build release binaries for all platforms"
+depends = ["build-linux", "build-macos", "build-windows"]
