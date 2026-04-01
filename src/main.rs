@@ -2,6 +2,7 @@ mod cli;
 mod commands;
 mod config;
 mod error;
+mod init;
 mod worktree;
 
 use anyhow::Result;
@@ -23,6 +24,9 @@ fn main() -> Result<()> {
         }
         cli::Commands::Remove { feature_name, yes } => {
             commands::remove::run(&feature_name, yes, &config)?;
+        }
+        cli::Commands::Init { shell } => {
+            init::run(&shell);
         }
     }
 

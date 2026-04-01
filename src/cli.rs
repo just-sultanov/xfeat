@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(
@@ -33,4 +33,15 @@ pub enum Commands {
         #[arg(short, long)]
         yes: bool,
     },
+
+    /// Generate shell initialization code
+    Init {
+        /// Shell to generate init code for
+        shell: Shell,
+    },
+}
+
+#[derive(ValueEnum, Clone, Debug)]
+pub enum Shell {
+    Zsh,
 }

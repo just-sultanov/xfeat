@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 pub const ENV_REPOS_DIR: &str = "XF_REPOS_DIR";
 pub const ENV_FEATURES_DIR: &str = "XF_FEATURES_DIR";
-const DEFAULT_REPOS_DIR: &str = "~/workspace/repos";
-const DEFAULT_FEATURES_DIR: &str = "~/workspace/features";
+pub const DEFAULT_REPOS_DIR: &str = "~/workspace/repos";
+pub const DEFAULT_FEATURES_DIR: &str = "~/workspace/features";
 
 pub struct Config {
     pub repos_dir: PathBuf,
