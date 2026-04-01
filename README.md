@@ -77,6 +77,25 @@ Remove feature 'JIRA-123'? [y/N] y
 Feature 'JIRA-123' removed.
 ```
 
+### `xfeat sync`
+
+Sync a feature with the latest main branch from source repos:
+
+```bash
+xfeat sync <feature-name>
+```
+
+For each worktree in the feature:
+1. Fetches latest changes from remote
+2. Rebases the feature branch onto `origin/main` (auto-detected)
+3. Stops on first conflict with an error message
+
+**Example:**
+
+```bash
+xfeat sync JIRA-123-fix-issue
+```
+
 ### `xfeat init`
 
 Generate shell initialization code with autocompletion and `xf` wrapper function:
@@ -90,8 +109,9 @@ eval "$(xfeat init zsh)"
 The `xf` wrapper:
 - `xf new <feature> <repos...>` — creates feature and `cd`s into it
 - `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
+- `xf sync <feature>` — syncs feature with main
 - `xf list` and other commands — proxied to `xfeat`
-- Tab completion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`)
+- Tab completion for repository names (`xf new <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`)
 
 ## Configuration
 
@@ -123,7 +143,8 @@ src/
     ├── mod.rs
     ├── new.rs        # Implementation of `new` command
     ├── list.rs       # Implementation of `list` command
-    └── remove.rs     # Implementation of `remove` command
+    ├── remove.rs     # Implementation of `remove` command
+    └── sync.rs       # Implementation of `sync` command
 ```
 
 ## License

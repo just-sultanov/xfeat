@@ -42,7 +42,7 @@ _xfeat_complete() {
   local repos_dir="${__ENV_REPOS_DIR__:-__DEFAULT_REPOS_DIR__}"
   local features_dir="${__ENV_FEATURES_DIR__:-__DEFAULT_FEATURES_DIR__}"
 
-  commands=("new:create a new feature" "list:list all features" "remove:remove a feature")
+  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main")
 
   if (( CURRENT == 2 )); then
     _describe 'command' commands
@@ -58,7 +58,7 @@ _xfeat_complete() {
           fi
         fi
         ;;
-      remove)
+      remove|sync)
         features_dir="${(e)features_dir}"
         features_dir="${~features_dir}"
         if [[ -d "$features_dir" ]]; then

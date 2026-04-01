@@ -32,3 +32,80 @@ pub fn create_worktree(source_repo: &Path, worktree_path: &Path, branch: &str) -
 
     Ok(())
 }
+
+/// Determines the default branch of a git repository.
+/// Tries `git symbolic-ref refs/remotes/origin/HEAD`, falls back to "main".
+pub fn get_default_branch(repo: &Path) -> String {
+    let output = Command::new("git")
+        .args([
+            "-C",
+            repo.to_str().unwrap(),
+            "symbolic-ref",
+            "--short",
+            "refs/remotes/origin/HEAD",
+        ])
+        .output();
+
+    match output {
+        Ok(out) if out.status.success() => {
+            let branch = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if branch.is_empty() {
+                "main".to_string()
+            } else {
+                branch
+                    .strip_prefix("origin/")
+                    .unwrap_or(&branch)
+                    .to_string()
+            }
+        }
+        _ => "main".to_string(),
+    }
+}
+
+/// Fetches latest changes from the remote in the worktree.
+pub fn fetch_worktree(worktree_path: &Path) -> Result<()> {
+    let output = Command::new("git")
+        .args(["-C", worktree_path.to_str().unwrap(), "fetch", "origin"])
+        .output()
+        .map_err(|e| Error::GitCommand(e.to_string()))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(Error::GitCommand(stderr.trim().to_string()));
+    }
+
+    Ok(())
+}
+
+/// Rebases the worktree onto the latest main branch.
+pub fn rebase_worktree(worktree_path: &Path, main_branch: &str) -> Result<()> {
+    let output = Command::new("git")
+        .args([
+            "-C",
+            worktree_path.to_str().unwrap(),
+            "rebase",
+            &format!("origin/{main_branch}"),
+        ])
+        .output()
+        .map_err(|e| Error::GitCommand(e.to_string()))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stderr_str = stderr.trim().to_string();
+
+        if stderr_str.contains("conflict") || output.status.code() == Some(1) {
+            return Err(Error::RebaseConflict(
+                worktree_path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string(),
+                stderr_str,
+            ));
+        }
+
+        return Err(Error::GitCommand(stderr_str));
+    }
+
+    Ok(())
+}

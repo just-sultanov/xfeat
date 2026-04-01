@@ -34,6 +34,12 @@ pub enum Commands {
         yes: bool,
     },
 
+    /// Sync a feature with the latest main branch from source repos
+    Sync {
+        /// Name of the feature to sync
+        feature_name: String,
+    },
+
     /// Generate shell initialization code
     Init {
         /// Shell to generate init code for

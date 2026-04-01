@@ -30,6 +30,13 @@ Lists all features with their worktrees and current branch names in a tree-like 
 
 Removes a feature directory and its worktrees. Prompts for confirmation by default. Warns about uncommitted changes. Supports `--yes` / `-y` flag to skip confirmation.
 
+### `xfeat sync <feature-name>`
+
+Syncs a feature with the latest main branch from source repos. For each worktree:
+1. Fetches latest changes from remote
+2. Rebases the feature branch onto `origin/main` (auto-detected via `refs/remotes/origin/HEAD`, fallback `main`)
+3. Stops on first conflict with an error message
+
 ### `xfeat init <shell>`
 
 Generates shell initialization code for `eval`. Currently supports `zsh`.
@@ -53,7 +60,8 @@ src/
     ├── mod.rs
     ├── new.rs        # Implementation of `new` command
     ├── list.rs       # Implementation of `list` command
-    └── remove.rs     # Implementation of `remove` command
+    ├── remove.rs     # Implementation of `remove` command
+    └── sync.rs       # Implementation of `sync` command
 ```
 
 ## Dependencies
@@ -79,6 +87,7 @@ src/
 - `Error::RepoNotFound` — repository not found in repos_dir
 - `Error::WorktreeExists` — worktree already exists
 - `Error::GitCommand` — git command execution failed
+- `Error::RebaseConflict` — rebase conflict during sync
 - `Error::Io` — filesystem error
 
 ## Git Worktree Logic
@@ -94,7 +103,7 @@ If worktree creation fails for any repository — remove all already-created wor
 
 ## Testing
 
-- 36 tests total (8 for `new`, 12 for `list`, 4 for `config`, 6 for `init`, 4 for `remove`)
+- 41 tests total (8 for `new`, 12 for `list`, 4 for `config`, 6 for `init`, 4 for `remove`, 5 for `sync`)
 - `TestEnv` fixture struct with `Drop` for automatic cleanup
 - Tests verify: directory creation, worktree links, branch names, error cases, rollback
 
@@ -105,8 +114,9 @@ If worktree creation fails for any repository — remove all already-created wor
 - Zsh script generated via `xfeat init zsh`:
   - Calls `xfeat new "$@"` to create, then `cd` into feature directory
   - On `remove` — `cd` out if currently in the feature directory (with confirmation prompt)
+  - On `sync` — syncs feature with latest main
   - For other commands — proxy to `xfeat`
-  - Autocompletion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`)
+  - Autocompletion for repository names (`xf new <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`)
   - Uses constants from `config.rs` for env var names and defaults
 
 ### Future Commands

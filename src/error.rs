@@ -12,6 +12,9 @@ pub enum Error {
     #[error("git command failed: {0}")]
     GitCommand(String),
 
+    #[error("rebase conflict in '{0}': {1}")]
+    RebaseConflict(String, String),
+
     #[error(transparent)]
     Io(#[from] std::io::Error),
 }
