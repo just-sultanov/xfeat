@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
+use std::process::Command;
 
 use crate::config::Config;
 
@@ -13,7 +14,7 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let mut features: Vec<(String, Vec<String>)> = Vec::new();
+    let mut features: Vec<(String, Vec<(String, String)>)> = Vec::new();
 
     for entry in fs::read_dir(&config.features_dir)? {
         let entry = entry?;
@@ -38,28 +39,34 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
     }
 
     for (i, (feature_name, worktrees)) in features.iter().enumerate() {
-        if i > 0 {
-            println!();
-        }
-        println!("{feature_name}");
+        let is_last_feature = i == features.len() - 1;
+        let feature_connector = if is_last_feature {
+            "└── "
+        } else {
+            "├── "
+        };
+        let child_prefix = if is_last_feature { "    " } else { "│   " };
+
+        println!("{feature_connector}{feature_name}");
 
         let mut sorted_worktrees = worktrees.clone();
-        sorted_worktrees.sort();
+        sorted_worktrees.sort_by(|a, b| a.0.cmp(&b.0));
 
-        for (j, repo) in sorted_worktrees.iter().enumerate() {
-            let connector = if j == sorted_worktrees.len() - 1 {
+        for (j, (repo, branch)) in sorted_worktrees.iter().enumerate() {
+            let is_last_repo = j == sorted_worktrees.len() - 1;
+            let repo_connector = if is_last_repo {
                 "└── "
             } else {
                 "├── "
             };
-            println!("  {connector}{repo}");
+            println!("{child_prefix}{repo_connector}{repo} ({branch})");
         }
     }
 
     Ok(())
 }
 
-fn list_worktrees(feature_dir: &PathBuf) -> Vec<String> {
+fn list_worktrees(feature_dir: &PathBuf) -> Vec<(String, String)> {
     let mut worktrees = Vec::new();
 
     if let Ok(entries) = fs::read_dir(feature_dir) {
@@ -67,12 +74,36 @@ fn list_worktrees(feature_dir: &PathBuf) -> Vec<String> {
             let path = entry.path();
             if path.is_dir() && path.join(".git").exists() {
                 let name = path.file_name().unwrap().to_string_lossy().to_string();
-                worktrees.push(name);
+                let branch = get_worktree_branch(&path);
+                worktrees.push((name, branch));
             }
         }
     }
 
     worktrees
+}
+
+fn get_worktree_branch(worktree_path: &std::path::Path) -> String {
+    let output = Command::new("git")
+        .args([
+            "-C",
+            worktree_path.to_str().unwrap(),
+            "branch",
+            "--show-current",
+        ])
+        .output();
+
+    match output {
+        Ok(output) => {
+            let branch = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if branch.is_empty() {
+                "detached".to_string()
+            } else {
+                branch
+            }
+        }
+        Err(_) => "unknown".to_string(),
+    }
 }
 
 #[cfg(test)]
@@ -167,6 +198,21 @@ mod tests {
         let feature_dir = env.config.features_dir.join("JIRA-123");
         assert!(feature_dir.exists());
         assert!(feature_dir.join("service-1").exists());
+
+        let branch_output = Command::new("git")
+            .args([
+                "-C",
+                feature_dir.join("service-1").to_str().unwrap(),
+                "branch",
+                "--show-current",
+            ])
+            .output()
+            .expect("failed to get branch");
+
+        let branch = String::from_utf8_lossy(&branch_output.stdout)
+            .trim()
+            .to_string();
+        assert_eq!(branch, "JIRA-123");
     }
 
     #[test]
@@ -272,6 +318,24 @@ mod tests {
         assert!(feature_dir.join("service-3").exists());
         assert!(feature_dir.join("service-4").exists());
         assert!(feature_dir.join("lib-1").exists());
+
+        for repo_name in ["service-1", "service-2", "service-3", "service-4", "lib-1"] {
+            let worktree_path = feature_dir.join(repo_name);
+            let branch_output = Command::new("git")
+                .args([
+                    "-C",
+                    worktree_path.to_str().unwrap(),
+                    "branch",
+                    "--show-current",
+                ])
+                .output()
+                .expect("failed to get branch");
+
+            let branch = String::from_utf8_lossy(&branch_output.stdout)
+                .trim()
+                .to_string();
+            assert_eq!(branch, "big-feature");
+        }
     }
 
     #[test]
