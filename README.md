@@ -107,11 +107,14 @@ eval "$(xfeat init zsh)"
 **Supported shells:** `zsh`
 
 The `xf` wrapper:
-- `xf new <feature> <repos...>` — creates feature and `cd`s into it
+- `xf new <feature> <repos...>` — creates feature
+- `xf switch <feature>` — `cd` into a feature directory
 - `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
 - `xf sync <feature>` — syncs feature with main
 - `xf list` and other commands — proxied to `xfeat`
-- Tab completion for repository names (`xf new <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`)
+- Tab completion for repository names (`xf new <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+
+Shell scripts are stored in `shell/` and embedded into the binary at compile time. They read `XF_REPOS_DIR` and `XF_FEATURES_DIR` from the environment on each invocation, making them compatible with tools like `direnv`. Tilde (`~`) in paths is expanded automatically.
 
 ## Configuration
 
@@ -137,7 +140,7 @@ src/
 ├── cli.rs            # CLI definition (clap)
 ├── config.rs         # Configuration (env vars with defaults)
 ├── error.rs          # Custom error types
-├── init.rs           # Shell initialization code (zsh with completions)
+├── init.rs           # Shell initialization code (embeds shell/ scripts)
 ├── worktree.rs       # Git worktree operations
 └── commands/
     ├── mod.rs
@@ -145,6 +148,8 @@ src/
     ├── list.rs       # Implementation of `list` command
     ├── remove.rs     # Implementation of `remove` command
     └── sync.rs       # Implementation of `sync` command
+shell/
+└── init.zsh          # Zsh initialization with completions (embedded at compile time)
 ```
 
 ## License

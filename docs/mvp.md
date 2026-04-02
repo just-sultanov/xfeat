@@ -42,9 +42,11 @@ Syncs a feature with the latest main branch from source repos. For each worktree
 Generates shell initialization code for `eval`. Currently supports `zsh`.
 
 The generated code provides:
-- `xf` wrapper function that proxies to `xfeat` and `cd`s into/out of feature directories
-- Tab completion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`)
-- Uses `XF_REPOS_DIR` / `XF_FEATURES_DIR` env vars with defaults from `config.rs` constants
+- `xf` wrapper function that proxies to `xfeat`
+- `xf switch <feature>` — `cd` into a feature directory
+- Tab completion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+- Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
+- Automatically expands `~` in path variables
 
 ## Project Structure
 
@@ -54,7 +56,7 @@ src/
 ├── cli.rs            # CLI definition (clap)
 ├── config.rs         # Configuration (env vars with defaults)
 ├── error.rs          # Custom error types
-├── init.rs           # Shell initialization code (zsh with completions)
+├── init.rs           # Shell initialization code (embeds shell/ scripts)
 ├── worktree.rs       # Git worktree operations
 └── commands/
     ├── mod.rs
@@ -62,6 +64,8 @@ src/
     ├── list.rs       # Implementation of `list` command
     ├── remove.rs     # Implementation of `remove` command
     └── sync.rs       # Implementation of `sync` command
+shell/
+└── init.zsh          # Zsh initialization with completions (embedded at compile time)
 ```
 
 ## Dependencies
@@ -72,6 +76,7 @@ src/
 | `thiserror`     | Custom error types               |
 | `anyhow`        | Application-level error handling |
 | `shellexpand`   | Expand `~` and env vars in paths |
+| `include_dir`   | Embed shell/ directory at compile time |
 
 ## Configuration
 
@@ -103,21 +108,22 @@ If worktree creation fails for any repository — remove all already-created wor
 
 ## Testing
 
-- 41 tests total (8 for `new`, 12 for `list`, 4 for `config`, 6 for `init`, 4 for `remove`, 5 for `sync`)
-- `TestEnv` fixture struct with `Drop` for automatic cleanup
+- Tests use `TestEnv` fixture struct with `Drop` for automatic cleanup
 - Tests verify: directory creation, worktree links, branch names, error cases, rollback
 
 ## Implemented Features
 
 ### Shell Wrapper `xf`
 
-- Zsh script generated via `xfeat init zsh`:
-  - Calls `xfeat new "$@"` to create, then `cd` into feature directory
-  - On `remove` — `cd` out if currently in the feature directory (with confirmation prompt)
-  - On `sync` — syncs feature with latest main
-  - For other commands — proxy to `xfeat`
-  - Autocompletion for repository names (`xf new <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`)
-  - Uses constants from `config.rs` for env var names and defaults
+- Zsh script stored in `shell/init.zsh`, embedded into the binary at compile time:
+  - `xf new` — calls `xfeat new` to create a feature
+  - `xf switch <feature>` — `cd` into the feature directory (errors if not found)
+  - `xf remove` — `cd` out if currently in the feature directory (with confirmation prompt)
+  - `xf sync` — syncs feature with latest main
+  - Other commands — proxy to `xfeat`
+  - Autocompletion for repository names (`xf new <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+  - Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
+  - Automatically expands `~` in path variables
 
 ### Future Commands
 
