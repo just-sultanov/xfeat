@@ -111,19 +111,61 @@ fn has_uncommitted(worktree_path: &std::path::Path) -> bool {
 }
 
 fn remove_worktrees(feature_dir: &std::path::Path, worktrees: &[(String, String)]) {
+    let mut source_repos = std::collections::HashSet::new();
+
     for (repo, _) in worktrees {
         let worktree_path = feature_dir.join(repo);
 
-        let _ = Command::new("git")
-            .args([
-                "worktree",
-                "remove",
-                "--force",
-                worktree_path.to_str().unwrap(),
-            ])
-            .output();
+        if let Some(source) = find_source_repo(&worktree_path) {
+            let _ = Command::new("git")
+                .args([
+                    "-C",
+                    source.to_str().unwrap(),
+                    "worktree",
+                    "remove",
+                    "--force",
+                    worktree_path.to_str().unwrap(),
+                ])
+                .output();
+
+            source_repos.insert(source);
+        }
 
         let _ = fs::remove_dir_all(&worktree_path);
+    }
+
+    for source in source_repos {
+        let _ = Command::new("git")
+            .args(["-C", source.to_str().unwrap(), "worktree", "prune"])
+            .output();
+    }
+}
+
+fn find_source_repo(worktree_path: &std::path::Path) -> Option<std::path::PathBuf> {
+    let output = Command::new("git")
+        .args([
+            "-C",
+            worktree_path.to_str()?,
+            "rev-parse",
+            "--git-common-dir",
+        ])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let common_dir = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let common_path = std::path::PathBuf::from(&common_dir);
+
+    if common_path.is_absolute() {
+        common_path.parent().map(std::path::Path::to_path_buf)
+    } else {
+        worktree_path
+            .join(&common_path)
+            .parent()
+            .map(std::path::Path::to_path_buf)
     }
 }
 
