@@ -1,11 +1,17 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[command(
     name = "xfeat",
+    version = env!("CARGO_PKG_VERSION"),
+    disable_version_flag = true,
     about = "Manage git worktrees across multiple repositories"
 )]
 pub struct Cli {
+    /// Print version information
+    #[arg(long, action = ArgAction::Version)]
+    version: (),
+
     #[command(subcommand)]
     pub command: Commands,
 }
