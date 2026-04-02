@@ -11,9 +11,7 @@ xf() {
     new)
       local feature="$1"
       shift
-      xfeat new "$feature" "$@" || return
-      local features_dir="${XF_FEATURES_DIR/#\~/$HOME}"
-      cd "${features_dir%/}/$feature" || return
+      xfeat new "$feature" "$@"
       ;;
     remove)
       local feature="$1"
