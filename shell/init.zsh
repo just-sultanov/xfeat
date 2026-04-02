@@ -21,7 +21,7 @@ xf() {
       local target_dir="${features_dir%/}/$feature"
       xfeat remove "$feature" "$@" || return
       if [ "$current_dir" = "$target_dir" ]; then
-        cd "$XF_FEATURES_DIR"
+        cd "$features_dir"
       fi
       ;;
     *)
