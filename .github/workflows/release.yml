@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build (Linux x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+      - run: mise run make-dist-linux
+      - uses: actions/upload-artifact@v7
+        with:
+          name: xfeat-x86_64-unknown-linux-gnu
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  build-macos-arm:
+    name: Build (macOS aarch64)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+      - run: mise run make-dist-macos-arm
+      - uses: actions/upload-artifact@v7
+        with:
+          name: xfeat-aarch64-apple-darwin
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  build-macos-x86:
+    name: Build (macOS x86_64)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+      - run: mise run make-dist-macos-x86
+      - uses: actions/upload-artifact@v7
+        with:
+          name: xfeat-x86_64-apple-darwin
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  build-windows:
+    name: Build (Windows x86_64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+      - run: mise run make-dist-windows
+      - uses: actions/upload-artifact@v7
+        with:
+          name: xfeat-x86_64-pc-windows-gnu
+          path: dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Create Draft Release
+    needs: [build-linux, build-macos-arm, build-macos-x86, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log "$PREVIOUS_TAG"..HEAD --pretty=format:"- %s (%h)" --reverse)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --reverse)
+          fi
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          tag_name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.body }}
+          files: dist/*/*
