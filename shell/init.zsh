@@ -1,0 +1,69 @@
+xf() {
+  if [[ $# -eq 0 ]]; then
+    xfeat
+    return
+  fi
+
+  local cmd="$1"
+  shift
+
+  case "$cmd" in
+    new)
+      local feature="$1"
+      shift
+      xfeat new "$feature" "$@" || return
+      cd "${XF_FEATURES_DIR%/}/$feature" || return
+      ;;
+    remove)
+      local feature="$1"
+      shift
+      local current_dir="$(pwd)"
+      local target_dir="${XF_FEATURES_DIR%/}/$feature"
+      xfeat remove "$feature" "$@" || return
+      if [ "$current_dir" = "$target_dir" ]; then
+        cd "$XF_FEATURES_DIR"
+      fi
+      ;;
+    *)
+      xfeat "$cmd" "$@"
+      ;;
+  esac
+}
+
+_xfeat_complete() {
+  local -a commands repos features
+  local repos_dir="${XF_REPOS_DIR}"
+  local features_dir="${XF_FEATURES_DIR}"
+
+  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main")
+
+  if [ $CURRENT -eq 2 ]; then
+    _describe 'command' commands
+  elif [ $CURRENT -gt 2 ]; then
+    local cmd="${words[2]}"
+    case "$cmd" in
+      new)
+        repos_dir="${(e)repos_dir}"
+        repos_dir="${~repos_dir}"
+        if [[ -d "$repos_dir" ]]; then
+          repos=("${(@f)$(command ls -1 "$repos_dir" 2>/dev/null)}")
+          if (( ${#repos} > 0 )); then
+            _describe 'repository' repos
+          fi
+        fi
+        ;;
+      remove|sync)
+        features_dir="${(e)features_dir}"
+        features_dir="${~features_dir}"
+        if [[ -d "$features_dir" ]]; then
+          features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")
+          if (( ${#features} > 0 )); then
+            _describe 'feature' features
+          fi
+        fi
+        ;;
+    esac
+  fi
+}
+
+compdef _xfeat_complete xf

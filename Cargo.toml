@@ -14,3 +14,4 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 shellexpand = "3"
 thiserror = "2"
+include_dir = "0.7"

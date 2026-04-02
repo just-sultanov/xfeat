@@ -1,84 +1,19 @@
+use include_dir::{Dir, include_dir};
+
 use crate::cli::Shell;
-use crate::config::{DEFAULT_FEATURES_DIR, DEFAULT_REPOS_DIR, ENV_FEATURES_DIR, ENV_REPOS_DIR};
 
-#[allow(clippy::literal_string_with_formatting_args)]
-fn generate_zsh_init() -> String {
-    let code = r#"xf() {
-  if [[ $# -eq 0 ]]; then
-    xfeat
-    return
-  fi
+static SHELL_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/shell");
 
-  local cmd="$1"
-  shift
+fn get_shell_init(shell: &Shell) -> &'static str {
+    let filename = match shell {
+        Shell::Zsh => "init.zsh",
+    };
 
-  case "$cmd" in
-    new)
-      local feature="$1"
-      shift
-      xfeat new "$feature" "$@" || return
-      local features_dir="${__ENV_FEATURES_DIR__:-__DEFAULT_FEATURES_DIR__}"
-      cd "$features_dir/$feature" || return
-      ;;
-    remove)
-      local feature="$1"
-      shift
-      local current_dir="$(pwd)"
-      local features_dir="${__ENV_FEATURES_DIR__:-__DEFAULT_FEATURES_DIR__}"
-      local target_dir="$features_dir/$feature"
-      xfeat remove "$feature" "$@" || return
-      if [ "$current_dir" = "$target_dir" ]; then
-        cd "$features_dir"
-      fi
-      ;;
-    *)
-      xfeat "$cmd" "$@"
-      ;;
-  esac
-}
-
-_xfeat_complete() {
-  local -a commands repos features
-  local repos_dir="${__ENV_REPOS_DIR__:-__DEFAULT_REPOS_DIR__}"
-  local features_dir="${__ENV_FEATURES_DIR__:-__DEFAULT_FEATURES_DIR__}"
-
-  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main")
-
-  if (( CURRENT == 2 )); then
-    _describe 'command' commands
-  elif (( CURRENT > 2 )); then
-    case "$words[2]" in
-      new)
-        repos_dir="${(e)repos_dir}"
-        repos_dir="${~repos_dir}"
-        if [[ -d "$repos_dir" ]]; then
-          repos=("${(@f)$(command ls -1 "$repos_dir" 2>/dev/null)}")
-          if (( ${#repos} > 0 )); then
-            _describe 'repository' repos
-          fi
-        fi
-        ;;
-      remove|sync)
-        features_dir="${(e)features_dir}"
-        features_dir="${~features_dir}"
-        if [[ -d "$features_dir" ]]; then
-          features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")
-          if (( ${#features} > 0 )); then
-            _describe 'feature' features
-          fi
-        fi
-        ;;
-    esac
-  fi
-}
-
-compdef _xfeat_complete xf
-"#;
-
-    code.replace("__ENV_REPOS_DIR__", ENV_REPOS_DIR)
-        .replace("__ENV_FEATURES_DIR__", ENV_FEATURES_DIR)
-        .replace("__DEFAULT_REPOS_DIR__", DEFAULT_REPOS_DIR)
-        .replace("__DEFAULT_FEATURES_DIR__", DEFAULT_FEATURES_DIR)
+    SHELL_DIR
+        .get_file(filename)
+        .unwrap_or_else(|| panic!("shell init file not found: {filename}"))
+        .contents_utf8()
+        .unwrap_or_else(|| panic!("shell init file is not valid UTF-8: {filename}"))
 }
 
 /// Generates shell initialization code for the specified shell.
@@ -86,17 +21,16 @@ compdef _xfeat_complete xf
 /// The output should be evaluated in the user's shell configuration
 /// (e.g., `eval "$(xfeat init zsh)"` in `~/.zshrc`).
 pub fn run(shell: &Shell) {
-    match shell {
-        Shell::Zsh => print!("{}", generate_zsh_init()),
-    }
+    print!("{}", get_shell_init(shell));
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::get_shell_init;
+    use crate::cli::Shell;
 
-    fn zsh_init() -> String {
-        generate_zsh_init()
+    fn zsh_init() -> &'static str {
+        get_shell_init(&Shell::Zsh)
     }
 
     #[test]
@@ -146,28 +80,15 @@ mod tests {
     }
 
     #[test]
-    fn test_init_zsh_uses_env_constants() {
+    fn test_init_zsh_uses_env_variables() {
         let output = zsh_init();
         assert!(
-            output.contains(ENV_REPOS_DIR),
-            "zsh init code should use ENV_REPOS_DIR constant"
+            output.contains("XF_REPOS_DIR"),
+            "zsh init code should use XF_REPOS_DIR variable"
         );
         assert!(
-            output.contains(ENV_FEATURES_DIR),
-            "zsh init code should use ENV_FEATURES_DIR constant"
-        );
-    }
-
-    #[test]
-    fn test_init_zsh_uses_default_constants() {
-        let output = zsh_init();
-        assert!(
-            output.contains(DEFAULT_REPOS_DIR),
-            "zsh init code should use DEFAULT_REPOS_DIR constant"
-        );
-        assert!(
-            output.contains(DEFAULT_FEATURES_DIR),
-            "zsh init code should use DEFAULT_FEATURES_DIR constant"
+            output.contains("XF_FEATURES_DIR"),
+            "zsh init code should use XF_FEATURES_DIR variable"
         );
     }
 }
