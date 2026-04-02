@@ -20,18 +20,20 @@ jobs:
 
   test:
     name: Test
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v4
       - run: |
-          git config user.email "ci@github.local"
-          git config user.name "CI"
-          git config init.defaultBranch main
+          git config --global user.email "ci@test"
+          git config --global user.name "CI"
+          git config --global init.defaultBranch main
       - run: mise run test
 
   build-linux:
     name: Build (Linux x86_64)
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -45,6 +47,7 @@ jobs:
 
   build-macos:
     name: Build (macOS)
+    needs: test
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -60,6 +63,7 @@ jobs:
 
   build-windows:
     name: Build (Windows x86_64)
+    needs: test
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
