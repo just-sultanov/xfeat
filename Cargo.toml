@@ -2,6 +2,7 @@
 name = "xfeat"
 version = "0.1.0"
 edition = "2024"
+build = "build.rs"
 description = "CLI utility for managing git worktrees across multiple repositories"
 license-file = "LICENSE"
 authors = ["Ilshat Sultanov <ilshat@sultanov.team>"]

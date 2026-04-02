@@ -3,9 +3,19 @@ use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 #[derive(Parser)]
 #[command(
     name = "xfeat",
-    version = env!("CARGO_PKG_VERSION"),
+    version = env!("XFEAT_VERSION"),
     disable_version_flag = true,
-    about = "Manage git worktrees across multiple repositories"
+    about = "Manage git worktrees across multiple repositories",
+    before_help = concat!(
+        "xfeat v",
+        env!("XFEAT_VERSION"),
+        "@",
+        env!("XFEAT_GIT_SHA"),
+        " (",
+        env!("XFEAT_BUILT_AT"),
+        ")"
+    ),
+    help_template = "{before-help}{about}\n\n{usage-heading}\n  {usage}\n\n{all-args}{after-help}",
 )]
 pub struct Cli {
     /// Print version information
