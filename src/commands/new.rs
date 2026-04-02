@@ -118,7 +118,7 @@ mod tests {
         let repo_name = env.setup_repo("repo-1");
 
         let feature_name = "new-test";
-        let result = run(feature_name, &[repo_name.clone()], &env.config);
+        let result = run(feature_name, std::slice::from_ref(&repo_name), &env.config);
 
         assert!(result.is_ok(), "run failed: {:?}", result.err());
 
@@ -188,7 +188,7 @@ mod tests {
         let repo_name = env.setup_repo("repo-3");
 
         let feature_name = "feature-dir-test";
-        run(feature_name, &[repo_name.clone()], &env.config).unwrap();
+        run(feature_name, std::slice::from_ref(&repo_name), &env.config).unwrap();
 
         let feature_dir = env.config.features_dir.join(feature_name);
         assert!(feature_dir.is_dir(), "feature directory should exist");
@@ -205,7 +205,7 @@ mod tests {
         let repo_path = env.config.repos_dir.join(&repo_name);
 
         let feature_name = "linked-test";
-        run(feature_name, &[repo_name.clone()], &env.config).unwrap();
+        run(feature_name, std::slice::from_ref(&repo_name), &env.config).unwrap();
 
         let worktree_path = env.config.features_dir.join(feature_name).join(&repo_name);
 
@@ -257,7 +257,7 @@ mod tests {
         let repo_name = env.setup_repo("repo-7");
 
         let feature_name = "valid-git-test";
-        run(feature_name, &[repo_name.clone()], &env.config).unwrap();
+        run(feature_name, std::slice::from_ref(&repo_name), &env.config).unwrap();
 
         let worktree_path = env.config.features_dir.join(feature_name).join(&repo_name);
 

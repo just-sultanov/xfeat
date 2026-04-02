@@ -142,8 +142,8 @@ mod tests {
             repo_path
         }
 
-        fn setup_source_repo(&self, name: &str, bare_path: &PathBuf) -> PathBuf {
-            let work_path = self.tmp.join(format!("source-{}", name));
+        fn setup_source_repo(&self, name: &str, bare_path: &Path) -> PathBuf {
+            let work_path = self.tmp.join(format!("source-{name}"));
             fs::create_dir_all(&work_path).unwrap();
 
             Command::new("git")
@@ -189,7 +189,7 @@ mod tests {
             work_path
         }
 
-        fn create_worktree(&self, feature_name: &str, repo_name: &str, source_path: &PathBuf) {
+        fn create_worktree(&self, feature_name: &str, repo_name: &str, source_path: &Path) {
             let worktree_path = self.config.features_dir.join(feature_name).join(repo_name);
 
             Command::new("git")
@@ -206,7 +206,7 @@ mod tests {
                 .expect("failed to create worktree");
         }
 
-        fn add_commit_to_main(&self, source_path: &PathBuf) {
+        fn add_commit_to_main(source_path: &Path) {
             let file_path = source_path.join("update.txt");
             fs::write(&file_path, "updated").unwrap();
 
@@ -265,7 +265,7 @@ mod tests {
         let source = env.setup_source_repo("repo-1", &bare);
 
         env.create_worktree("sync-test", "repo-1", &source);
-        env.add_commit_to_main(&source);
+        TestEnv::add_commit_to_main(&source);
 
         let result = run("sync-test", &env.config);
         assert!(result.is_ok(), "sync failed: {:?}", result.err());
@@ -284,8 +284,8 @@ mod tests {
         env.create_worktree("multi-sync", "repo-a", &source1);
         env.create_worktree("multi-sync", "repo-b", &source2);
 
-        env.add_commit_to_main(&source1);
-        env.add_commit_to_main(&source2);
+        TestEnv::add_commit_to_main(&source1);
+        TestEnv::add_commit_to_main(&source2);
 
         let result = run("multi-sync", &env.config);
         assert!(result.is_ok(), "sync failed: {:?}", result.err());
@@ -298,7 +298,7 @@ mod tests {
         let source = env.setup_source_repo("repo-2", &bare);
 
         env.create_worktree("up-to-date", "repo-2", &source);
-        env.add_commit_to_main(&source);
+        TestEnv::add_commit_to_main(&source);
 
         run("up-to-date", &env.config).unwrap();
 
