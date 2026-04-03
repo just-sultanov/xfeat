@@ -60,6 +60,8 @@ _xfeat_complete() {
       new)
         if [[ -d "$repos_dir" ]]; then
           repos=("${(@f)$(command ls -1 "$repos_dir" 2>/dev/null)}")
+          local specified=("${(@)words[4,-1]}")
+          repos=("${(@)repos:|specified}")
           if (( ${#repos} > 0 )); then
             _describe 'repository' repos
           fi
