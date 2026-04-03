@@ -2,6 +2,15 @@
 
 CLI utility for managing git worktrees across multiple repositories.
 
+## Rationale
+
+Why? I work on several large products simultaneously.
+In total, that's 90+ repositories, and a feature often touches multiple products at once.
+This used to be a pain: constant branch switching, stashing, and a mess of open folders.
+
+`xfeat` fixes this — each feature gets its own isolated workspace via git worktrees.
+No context switching. No stashing. Perfect for parallel work with AI coding agents.
+
 ## Overview
 
 `xfeat` is designed for developers working on multiple projects simultaneously. Each project has its own workspace with `repos` (source repositories) and `features` (worktree branches) directories. Environment variables `XF_REPOS_DIR` and `XF_FEATURES_DIR` are scoped per-project, allowing isolated feature development across multiple repositories within a single project context.
