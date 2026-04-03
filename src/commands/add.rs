@@ -176,7 +176,13 @@ mod tests {
 
         env.setup_feature_with_worktree("add-test", &repo1);
 
-        let result = run("add-test", &[repo2.clone()], None, None, &env.config);
+        let result = run(
+            "add-test",
+            std::slice::from_ref(&repo2),
+            None,
+            None,
+            &env.config,
+        );
 
         assert!(result.is_ok(), "add failed: {:?}", result.err());
 
@@ -263,7 +269,7 @@ mod tests {
 
         let result = run(
             "mixed-test",
-            &[repo1.clone(), repo2.clone(), repo3.clone()],
+            &[repo1, repo2.clone(), repo3.clone()],
             None,
             None,
             &env.config,
@@ -288,7 +294,7 @@ mod tests {
 
         let result = run(
             "from-test",
-            &[repo2.clone()],
+            std::slice::from_ref(&repo2),
             Some("main"),
             None,
             &env.config,
@@ -348,7 +354,7 @@ mod tests {
 
         let result = run(
             "custom-test",
-            &[repo2.clone()],
+            std::slice::from_ref(&repo2),
             None,
             Some("bugfix/JIRA-123"),
             &env.config,
@@ -412,7 +418,7 @@ mod tests {
         // Now try to add the same repo to inuse-test with the same branch name
         let result = run(
             "inuse-test",
-            &[repo.clone()],
+            std::slice::from_ref(&repo),
             None,
             Some("bugfix/already-in-use"),
             &env.config,
@@ -438,7 +444,7 @@ mod tests {
 
         let result = run(
             "both-test",
-            &[repo2.clone()],
+            std::slice::from_ref(&repo2),
             Some("main"),
             Some("feature/custom-branch"),
             &env.config,
