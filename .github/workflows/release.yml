@@ -2,7 +2,6 @@ name: Release
 
 on:
   push:
-    branches: [main]
     tags: ["v*"]
 
 env:
@@ -95,7 +94,6 @@ jobs:
   release:
     name: Create Draft Release
     needs: [build-linux, build-macos-arm, build-macos-x86, build-windows]
-    # needs: [build-linux, build-macos-arm, build-macos-x86]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
