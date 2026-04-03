@@ -26,9 +26,7 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         let feature_name = path.file_name().unwrap().to_string_lossy().to_string();
         let worktrees = list_worktrees(&path);
 
-        if !worktrees.is_empty() {
-            features.push((feature_name, worktrees));
-        }
+        features.push((feature_name, worktrees));
     }
 
     features.sort_by(|a, b| a.0.cmp(&b.0));
@@ -47,19 +45,23 @@ pub fn run(config: &Config) -> anyhow::Result<()> {
         };
         let child_prefix = if is_last_feature { "    " } else { "│   " };
 
-        println!("{feature_connector}{feature_name}");
+        if worktrees.is_empty() {
+            println!("{feature_connector}{feature_name} (empty)");
+        } else {
+            println!("{feature_connector}{feature_name}");
 
-        let mut sorted_worktrees = worktrees.clone();
-        sorted_worktrees.sort_by(|a, b| a.0.cmp(&b.0));
+            let mut sorted_worktrees = worktrees.clone();
+            sorted_worktrees.sort_by(|a, b| a.0.cmp(&b.0));
 
-        for (j, (repo, branch)) in sorted_worktrees.iter().enumerate() {
-            let is_last_repo = j == sorted_worktrees.len() - 1;
-            let repo_connector = if is_last_repo {
-                "└── "
-            } else {
-                "├── "
-            };
-            println!("{child_prefix}{repo_connector}{repo} ({branch})");
+            for (j, (repo, branch)) in sorted_worktrees.iter().enumerate() {
+                let is_last_repo = j == sorted_worktrees.len() - 1;
+                let repo_connector = if is_last_repo {
+                    "└── "
+                } else {
+                    "├── "
+                };
+                println!("{child_prefix}{repo_connector}{repo} ({branch})");
+            }
         }
     }
 
@@ -285,6 +287,26 @@ mod tests {
         fs::create_dir_all(&empty_feature_dir).unwrap();
 
         run(&env.config).unwrap();
+
+        let feature_dir = env.config.features_dir.join("empty-feature");
+        assert!(feature_dir.exists());
+        assert!(feature_dir.read_dir().unwrap().next().is_none());
+    }
+
+    #[test]
+    fn test_list_features_mixed_empty_and_with_worktrees() {
+        let env = TestEnv::new();
+        let repo = env.setup_repo("service-1");
+
+        env.create_worktree("JIRA-123", "service-1", &repo);
+        fs::create_dir_all(env.config.features_dir.join("empty-feature")).unwrap();
+        env.create_worktree("JIRA-456", "service-1", &repo);
+
+        run(&env.config).unwrap();
+
+        assert!(env.config.features_dir.join("JIRA-123").exists());
+        assert!(env.config.features_dir.join("empty-feature").exists());
+        assert!(env.config.features_dir.join("JIRA-456").exists());
     }
 
     #[test]
