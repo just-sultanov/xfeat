@@ -84,6 +84,12 @@ _xfeat_complete() {
         else
           if [[ -d "$repos_dir" ]]; then
             repos=("${(@f)$(command ls -1 "$repos_dir" 2>/dev/null)}")
+            local feature="${words[3]}"
+            local feature_path="${features_dir%/}/$feature"
+            if [[ -d "$feature_path" ]]; then
+              local used=("${(@f)$(command ls -1 "$feature_path" 2>/dev/null)}")
+              repos=("${(@)repos:|used}")
+            fi
             if (( ${#repos} > 0 )); then
               _describe 'repository' repos
             fi
