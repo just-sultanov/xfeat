@@ -1,6 +1,6 @@
 [package]
 name = "xfeat"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 build = "build.rs"
 description = "CLI utility for managing git worktrees across multiple repositories"
