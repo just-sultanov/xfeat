@@ -32,7 +32,7 @@ jobs:
       - run: mise run test
 
   build-linux:
-    name: Build (Linux x86_64)
+    name: Build (Linux x86_64 static)
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -41,8 +41,8 @@ jobs:
       - run: mise run build-linux
       - uses: actions/upload-artifact@v7
         with:
-          name: xfeat-x86_64-unknown-linux-gnu
-          path: target/x86_64-unknown-linux-gnu/release/xfeat
+          name: xfeat-x86_64-unknown-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/xfeat
           if-no-files-found: error
 
   build-macos-arm:

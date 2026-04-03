@@ -34,7 +34,7 @@ jobs:
       - run: mise run test
 
   build-linux:
-    name: Build (Linux x86_64)
+    name: Build (Linux x86_64 static)
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -43,7 +43,7 @@ jobs:
       - run: mise run dist-linux
       - uses: actions/upload-artifact@v7
         with:
-          name: xfeat-x86_64-unknown-linux-gnu
+          name: xfeat-x86_64-unknown-linux-musl
           path: dist/*.tar.gz
           if-no-files-found: error
 
