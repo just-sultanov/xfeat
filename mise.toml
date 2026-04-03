@@ -138,12 +138,7 @@ run = """
 [tasks.dist-windows]
 description = "Build and package Windows binary"
 depends = ["build-windows"]
-run = '''
-  New-Item -ItemType Directory -Force -Path dist
-  $version = (./target/x86_64-pc-windows-gnu/release/xfeat.exe --version).Split(' ')[1]
-  Compress-Archive -Path "target\x86_64-pc-windows-gnu\release\xfeat.exe" `
-    -DestinationPath "dist\xfeat-v${version}-x86_64-pc-windows-gnu.zip"
-'''
+run = "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path dist; $v = (./target/x86_64-pc-windows-gnu/release/xfeat.exe --version).Split(' ')[1]; Compress-Archive -Path 'target\\x86_64-pc-windows-gnu\\release\\xfeat.exe' -DestinationPath \\\"dist\\xfeat-v$($v)-x86_64-pc-windows-gnu.zip\\\"\""
 
 ##
 # Publish
