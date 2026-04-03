@@ -20,11 +20,13 @@ cargo install xfeat  # soon
 
 ## Quick Start
 
-`xfeat` shines when you work on multiple projects simultaneously. Each project has its own workspace with isolated `repos` and `features` directories, so you can develop multiple features in parallel — including with AI coding agents that work on different features at the same time without conflicts.
+Set up your project workspace and start developing features in parallel:
 
-> **Tip:** E.g., you can use `direnv` or `mise env` to automatically set `XF_REPOS_DIR` and `XF_FEATURES_DIR` when entering a project directory.
-
-**Project A — e-commerce platform:**
+```bash
+cd ~/projects/store
+export XF_REPOS_DIR=~/projects/store/repos
+export XF_FEATURES_DIR=~/projects/store/features
+```
 
 ```
 ~/projects/store/
@@ -35,9 +37,11 @@ cargo install xfeat  # soon
 └── features/           # empty
 ```
 
+**1. Create a new feature and add worktrees:**
+
 ```bash
-cd ~/projects/store
-xf new checkout-v2 payment-service checkout-api
+xf new checkout-v2
+xf add checkout-v2 payment-service checkout-api
 ```
 
 ```
@@ -52,35 +56,132 @@ xf new checkout-v2 payment-service checkout-api
         └── checkout-api/     # worktree on branch checkout-v2
 ```
 
-**Project B — analytics dashboard:**
-
-```
-~/projects/analytics/
-├── repos/
-│   ├── frontend/
-│   ├── backend/
-│   └── data-pipeline/
-└── features/           # empty
-```
+**2. Work on your feature** — each worktree is a fully independent git checkout:
 
 ```bash
-cd ~/projects/analytics
-xf new dashboard-redesign frontend backend
+xf switch checkout-v2
+cd payment-service
+# make changes, commit, push — no stashing, no branch switching
+```
+
+**3. Stay in sync with main:**
+
+```bash
+xf sync checkout-v2
+```
+
+**4. List all active features:**
+
+```bash
+xf list
 ```
 
 ```
-~/projects/analytics/
-├── repos/
-│   ├── frontend/
-│   ├── backend/
-│   └── data-pipeline/
-└── features/
-    └── dashboard-redesign/
-        ├── frontend/     # worktree on branch dashboard-redesign
-        └── backend/      # worktree on branch dashboard-redesign
+├── checkout-v2
+│   ├── payment-service (checkout-v2)
+│   └── checkout-api (checkout-v2)
+└── payment-refactor (empty)
+```
+
+**5. Done? Clean up:**
+
+```bash
+xf remove checkout-v2
 ```
 
 Each feature gets its own git worktrees, so you can switch between projects and features instantly without stashing or switching branches.
+
+## Workflows
+
+### AI-assisted development
+
+Run multiple AI coding agents (Claude Code, Codex, Cursor, etc.) on different features simultaneously — each agent gets its own isolated workspace with no risk of conflicts:
+
+```bash
+# Start two features in parallel
+xf new ai-payment-fix
+xf add ai-payment-fix payment-service --from develop
+
+xf new ai-checkout-v3
+xf add ai-checkout-v3 checkout-api frontend --from develop
+```
+
+Now launch AI agents in separate terminals:
+
+```bash
+# Terminal 1 — Claude Code working on payment fix
+xf switch ai-payment-fix
+cd payment-service
+claude
+
+# Terminal 2 — Codex working on checkout redesign
+xf switch ai-checkout-v3
+cd checkout-api
+codex
+```
+
+Both agents work independently on their own branches. Before merging, sync each feature with the latest `main`:
+
+```bash
+xf sync ai-payment-fix
+xf sync ai-checkout-v3
+```
+
+### Multiple projects & features simultaneously
+
+Switch between projects and juggle multiple features without losing context:
+
+```bash
+# Project A — e-commerce
+cd ~/projects/store
+export XF_REPOS_DIR=~/projects/store/repos
+export XF_FEATURES_DIR=~/projects/store/features
+
+xf new checkout-v2
+xf add checkout-v2 payment-service checkout-api
+
+# Project B — analytics dashboard
+cd ~/projects/analytics
+export XF_REPOS_DIR=~/projects/analytics/repos
+export XF_FEATURES_DIR=~/projects/analytics/features
+
+xf new dashboard-redesign
+xf add dashboard-redesign frontend backend
+```
+
+Use `xf switch` to jump between features instantly:
+
+```bash
+xf switch checkout-v2        # cd to features/checkout-v2
+# work on checkout...
+
+xf switch dashboard-redesign # cd to features/dashboard-redesign (in analytics project)
+# work on dashboard...
+```
+
+View everything at a glance:
+
+```bash
+xf list
+```
+
+```
+├── checkout-v2
+│   ├── payment-service (checkout-v2)
+│   └── checkout-api (checkout-v2)
+├── payment-refactor
+│   └── payment-service (payment-refactor)
+└── dashboard-redesign
+    ├── frontend (dashboard-redesign)
+    └── backend (dashboard-redesign)
+```
+
+> **Tip:** Use `direnv` or `mise env` to automatically set `XF_REPOS_DIR` and `XF_FEATURES_DIR` when entering a project directory. Add an `.envrc` file:
+>
+> ```bash
+> export XF_REPOS_DIR=~/projects/store/repos
+> export XF_FEATURES_DIR=~/projects/store/features
+> ```
 
 ## Commands
 
@@ -89,53 +190,56 @@ Each feature gets its own git worktrees, so you can switch between projects and 
 Create a new empty feature directory:
 
 ```bash
-xfeat new <feature-name>
+xf new <feature-name>
 ```
 
 **Example:**
 
 ```bash
-xfeat new JIRA-123-fix-issue
+xf new JIRA-123-fix-issue
 ```
 
-Then add worktrees with `xfeat add`:
+This creates an empty directory. Add worktrees with `xf add`:
 
 ```bash
-xfeat add JIRA-123-fix-issue service-1 service-2 lib-1
+xf add JIRA-123-fix-issue service-1 service-2 lib-1
 ```
 
 ### `xfeat add`
 
-Add worktrees for repos to an existing feature:
+Add worktrees for repositories to an existing feature:
 
 ```bash
-xfeat add <feature-name> <repos...>
-xfeat add <feature-name> <repos...> --from <branch>
-xfeat add <feature-name> <repos...> --branch <branch-name>
-xfeat add <feature-name> <repos...> --from <branch> --branch <branch-name>
+xf add <feature-name> <repos...>
+xf add <feature-name> <repos...> --from <branch>
+xf add <feature-name> <repos...> --branch <branch-name>
+xf add <feature-name> <repos...> --from <branch> --branch <branch-name>
 ```
 
 **Examples:**
 
 ```bash
-# Add repo with default branch name (feature name)
-xfeat add JIRA-123 service-b
+# Add repos — branches named after the feature
+xf add JIRA-123 payment-service checkout-api
 
-# Add repo, creating branch from a specific branch
-xfeat add JIRA-123 service-b --from develop
+# Add repos, branching from a specific source branch
+xf add JIRA-123 payment-service --from develop
 
-# Add repo with a custom branch name
-xfeat add JIRA-123 service-b --from master --branch bugfix/JIRA-123
+# Add repos with a custom branch name
+xf add JIRA-123 payment-service --branch bugfix/JIRA-123
+
+# Combine: branch from 'develop' with a custom name
+xf add JIRA-123 payment-service --from develop --branch bugfix/JIRA-123
 ```
 
-Skips repos that already have worktrees in the feature.
+Skips repositories that already have worktrees in the feature.
 
 ### `xfeat list`
 
 List all features with their worktrees and current branches:
 
 ```bash
-xfeat list
+xf list
 ```
 
 **Example output:**
@@ -151,32 +255,12 @@ xfeat list
 
 Empty features (created with `xf new` but without worktrees yet) are shown with `(empty)`.
 
-### `xfeat remove`
-
-Remove a feature and its worktrees. Prompts for confirmation by default:
-
-```bash
-xfeat remove <feature-name>
-xfeat remove <feature-name> --yes   # skip confirmation
-```
-
-**Example output:**
-
-```
-Feature 'JIRA-123' contains:
-  - service-1 (JIRA-123)
-  - service-2 (JIRA-123) ⚠ has uncommitted changes
-
-Remove feature 'JIRA-123'? [y/N] y
-Feature 'JIRA-123' removed.
-```
-
 ### `xfeat sync`
 
 Sync a feature with the latest main branch from source repos:
 
 ```bash
-xfeat sync <feature-name>
+xf sync <feature-name>
 ```
 
 For each worktree in the feature:
@@ -188,7 +272,36 @@ For each worktree in the feature:
 **Example:**
 
 ```bash
-xfeat sync JIRA-123-fix-issue
+xf sync JIRA-123-fix-issue
+```
+
+**Typical workflow before merging:**
+
+```bash
+xf sync JIRA-123-fix-issue   # rebase onto latest main
+# resolve any conflicts if needed
+xf sync JIRA-123-fix-issue   # verify clean sync
+# merge or create PR
+```
+
+### `xfeat remove`
+
+Remove a feature and its worktrees. Prompts for confirmation by default:
+
+```bash
+xf remove <feature-name>
+xf remove <feature-name> --yes   # skip confirmation (for scripts)
+```
+
+**Example output:**
+
+```
+Feature 'JIRA-123' contains:
+  - service-1 (JIRA-123)
+  - service-2 (JIRA-123) ⚠ has uncommitted changes
+
+Remove feature 'JIRA-123'? [y/N] y
+Feature 'JIRA-123' removed.
 ```
 
 ### `xfeat init`
@@ -209,7 +322,7 @@ The `xf` wrapper:
 - `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
 - `xf sync <feature>` — syncs feature with main
 - `xf list` and other commands — proxied to `xfeat`
-- Tab completion for repository names (`xf add <TAB>`), feature names (`xf new <TAB>`, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`, `xf add <TAB>`)
+- Tab completion for repository names (`xf add <TAB>`), feature names (`xf new <TAB>`, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
 
 Shell scripts are stored in `shell/` and embedded into the binary at compile time. They read `XF_REPOS_DIR` and `XF_FEATURES_DIR` from the environment on each invocation, making them compatible with tools like `direnv`. Tilde (`~`) in paths is expanded automatically.
 
