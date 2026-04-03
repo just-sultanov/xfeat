@@ -48,7 +48,9 @@ Generates shell initialization code for `eval`. Currently supports `zsh`.
 The generated code provides:
 - `xf` wrapper function that proxies to `xfeat`
 - `xf switch <feature>` — `cd` into a feature directory
-- Tab completion for repository names (`xf new <TAB>`) and feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+- Tab completion for repository names (`xf new <TAB>`, `xf add <TAB>`) with automatic filtering of already-specified repos
+- Tab completion for feature names (`xf add <TAB>` first arg, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+- Autocomplete for `xf add` shows features for the first arg, repos (excluding already-added ones) for subsequent args
 - Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
 - Automatically expands `~` in path variables
 
@@ -65,11 +67,14 @@ src/
 └── commands/
     ├── mod.rs
     ├── new.rs        # Implementation of `new` command
+    ├── add.rs        # Implementation of `add` command
     ├── list.rs       # Implementation of `list` command
     ├── remove.rs     # Implementation of `remove` command
     └── sync.rs       # Implementation of `sync` command
 shell/
 └── init.zsh          # Zsh initialization with completions (embedded at compile time)
+bin/
+└── ...               # Mise task scripts (clean, lint, test, build-*, dist-*, etc.)
 ```
 
 ## Dependencies
@@ -106,14 +111,10 @@ shell/
 - Paths are resolved to absolute before calling git (fixes relative path issues)
 - Validate that source is a git repository
 
-## Rollback Strategy
-
-If worktree creation fails for any repository — remove all already-created worktrees and the feature directory to avoid leaving a partial state.
-
 ## Testing
 
 - Tests use `TestEnv` fixture struct with `Drop` for automatic cleanup
-- Tests verify: directory creation, worktree links, branch names, error cases, rollback
+- Tests verify: directory creation, worktree links, branch names, error cases, skip-existing behavior
 
 ## Implemented Features
 
@@ -126,8 +127,9 @@ If worktree creation fails for any repository — remove all already-created wor
   - `xf remove` — `cd` out if currently in the feature directory (with confirmation prompt)
   - `xf sync` — syncs feature with latest main
   - Other commands — proxy to `xfeat`
-  - Autocompletion for repository names (`xf add <TAB>`), feature names (`xf new <TAB>`, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`, `xf add <TAB>`)
-  - Autocomplete for `xf add` shows features for the first arg, repos for subsequent args
+  - Autocompletion for repository names (`xf new <TAB>`, `xf add <TAB>`) with automatic filtering of already-specified repos
+  - Autocomplete for `xf add` shows features for the first arg, repos (excluding already-added ones) for subsequent args
+  - Autocompletion for feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
   - Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
   - Automatically expands `~` in path variables
 
@@ -148,8 +150,9 @@ If worktree creation fails for any repository — remove all already-created wor
 
 ### Development Tooling
 
-- mise tasks for version management (`bump-version`, `pre-publish`, `publish`)
-- Cross-platform build and packaging tasks (`dist-linux`, `dist-macos-arm`, `dist-macos-x86`, `dist-windows`)
+- mise tasks with scripts in `bin/` directory for clean separation of concerns
+- Tasks for version management (`bump-version`, `pre-publish`, `publish`)
+- Cross-platform build and packaging tasks (`dist-linux`, `dist-macos-arm`, `dist-macos-x86`, `dist-windows.ps1`)
 - Installable via `mise install github:just-sultanov/xfeat`
 
 ### Future Commands
