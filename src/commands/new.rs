@@ -28,7 +28,7 @@ pub fn run(feature_name: &str, repos: &[String], config: &Config) -> anyhow::Res
         let repo_path = config.repos_dir.join(repo_name);
         let worktree_path = feature_dir.join(repo_name);
 
-        if let Err(e) = worktree::create_worktree(&repo_path, &worktree_path, feature_name) {
+        if let Err(e) = worktree::create_worktree(&repo_path, &worktree_path, None, feature_name) {
             rollback(&created, &feature_dir);
             return Err(anyhow::anyhow!(e));
         }

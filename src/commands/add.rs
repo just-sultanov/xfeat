@@ -2,11 +2,48 @@ use crate::config::Config;
 use crate::error::Error;
 use crate::worktree;
 
-pub fn run(feature_name: &str, repos: &[String], config: &Config) -> anyhow::Result<()> {
+pub fn run(
+    feature_name: &str,
+    repos: &[String],
+    from_branch: Option<&str>,
+    branch_name: Option<&str>,
+    config: &Config,
+) -> anyhow::Result<()> {
     let feature_dir = config.features_dir.join(feature_name);
 
     if !feature_dir.exists() {
         anyhow::bail!("feature '{feature_name}' not found. Use `xf new` to create it first.",);
+    }
+
+    let target_branch = branch_name.unwrap_or(feature_name);
+
+    if let Some(from) = from_branch {
+        for repo_name in repos {
+            let repo_path = config.repos_dir.join(repo_name);
+            if !repo_path.exists() || !worktree::is_git_repo(&repo_path) {
+                anyhow::bail!("repository '{repo_name}' not found or is not a git repository");
+            }
+            worktree::fetch_repo(&repo_path)
+                .map_err(|e| anyhow::anyhow!("failed to fetch repository '{repo_name}': {e}"))?;
+            if !worktree::branch_exists(&repo_path, from) {
+                anyhow::bail!("branch '{from}' does not exist in repository '{repo_name}'");
+            }
+        }
+    }
+
+    if branch_name.is_some() {
+        for repo_name in repos {
+            let repo_path = config.repos_dir.join(repo_name);
+            if !repo_path.exists() || !worktree::is_git_repo(&repo_path) {
+                anyhow::bail!("repository '{repo_name}' not found or is not a git repository");
+            }
+            if let Some(worktree_path) = worktree::is_branch_in_use(&repo_path, target_branch) {
+                anyhow::bail!(
+                    "branch '{target_branch}' is already checked out at '{}'",
+                    worktree_path.display()
+                );
+            }
+        }
     }
 
     println!("Feature '{feature_name}' already exists.");
@@ -27,7 +64,7 @@ pub fn run(feature_name: &str, repos: &[String], config: &Config) -> anyhow::Res
         }
 
         println!("  Creating: {repo_name}");
-        worktree::create_worktree(&repo_path, &worktree_path, feature_name).map_err(
+        worktree::create_worktree(&repo_path, &worktree_path, from_branch, target_branch).map_err(
             |e| match e {
                 Error::WorktreeExists(_) => {
                     anyhow::anyhow!("worktree already exists at '{}'", worktree_path.display())
@@ -139,7 +176,7 @@ mod tests {
 
         env.setup_feature_with_worktree("add-test", &repo1);
 
-        let result = run("add-test", &[repo2.clone()], &env.config);
+        let result = run("add-test", &[repo2.clone()], None, None, &env.config);
 
         assert!(result.is_ok(), "add failed: {:?}", result.err());
 
@@ -169,7 +206,7 @@ mod tests {
 
         env.setup_feature_with_worktree("skip-test", &repo);
 
-        let result = run("skip-test", &[repo], &env.config);
+        let result = run("skip-test", &[repo], None, None, &env.config);
 
         assert!(result.is_ok(), "add should succeed even when skipping");
     }
@@ -181,6 +218,8 @@ mod tests {
         let result = run(
             "nonexistent-feature",
             &["some-repo".to_string()],
+            None,
+            None,
             &env.config,
         );
 
@@ -201,6 +240,8 @@ mod tests {
         let result = run(
             "empty-feature",
             &["nonexistent-repo".to_string()],
+            None,
+            None,
             &env.config,
         );
 
@@ -223,6 +264,8 @@ mod tests {
         let result = run(
             "mixed-test",
             &[repo1.clone(), repo2.clone(), repo3.clone()],
+            None,
+            None,
             &env.config,
         );
 
@@ -233,5 +276,199 @@ mod tests {
 
         assert!(worktree2.exists(), "new worktree for repo2 should exist");
         assert!(worktree3.exists(), "new worktree for repo3 should exist");
+    }
+
+    #[test]
+    fn test_add_with_from_branch() {
+        let env = TestEnv::new();
+        let repo1 = env.setup_repo("repo-from-1");
+        let repo2 = env.setup_repo("repo-from-2");
+
+        env.setup_feature_with_worktree("from-test", &repo1);
+
+        let result = run(
+            "from-test",
+            &[repo2.clone()],
+            Some("main"),
+            None,
+            &env.config,
+        );
+
+        assert!(result.is_ok(), "add with --from failed: {:?}", result.err());
+
+        let worktree_path = env.config.features_dir.join("from-test").join(&repo2);
+        assert!(worktree_path.exists(), "worktree should exist");
+
+        let branch_output = Command::new("git")
+            .args([
+                "-C",
+                worktree_path.to_str().unwrap(),
+                "branch",
+                "--show-current",
+            ])
+            .output()
+            .expect("failed to get branch");
+
+        let branch = String::from_utf8_lossy(&branch_output.stdout)
+            .trim()
+            .to_string();
+        assert_eq!(branch, "from-test", "branch name should match feature name");
+    }
+
+    #[test]
+    fn test_add_with_from_branch_not_found() {
+        let env = TestEnv::new();
+        let repo = env.setup_repo("repo-from-missing");
+
+        let feature_dir = env.config.features_dir.join("from-missing-test");
+        std::fs::create_dir_all(&feature_dir).unwrap();
+
+        let result = run(
+            "from-missing-test",
+            &[repo],
+            Some("nonexistent-branch"),
+            None,
+            &env.config,
+        );
+
+        assert!(result.is_err(), "expected error for missing branch");
+        assert!(
+            result.unwrap_err().to_string().contains("does not exist"),
+            "error message should mention 'does not exist'"
+        );
+    }
+
+    #[test]
+    fn test_add_with_custom_branch() {
+        let env = TestEnv::new();
+        let repo1 = env.setup_repo("repo-custom-1");
+        let repo2 = env.setup_repo("repo-custom-2");
+
+        env.setup_feature_with_worktree("custom-test", &repo1);
+
+        let result = run(
+            "custom-test",
+            &[repo2.clone()],
+            None,
+            Some("bugfix/JIRA-123"),
+            &env.config,
+        );
+
+        assert!(
+            result.is_ok(),
+            "add with --branch failed: {:?}",
+            result.err()
+        );
+
+        let worktree_path = env.config.features_dir.join("custom-test").join(&repo2);
+        assert!(worktree_path.exists(), "worktree should exist");
+
+        let branch_output = Command::new("git")
+            .args([
+                "-C",
+                worktree_path.to_str().unwrap(),
+                "branch",
+                "--show-current",
+            ])
+            .output()
+            .expect("failed to get branch");
+
+        let branch = String::from_utf8_lossy(&branch_output.stdout)
+            .trim()
+            .to_string();
+        assert_eq!(
+            branch, "bugfix/JIRA-123",
+            "branch name should match custom branch"
+        );
+    }
+
+    #[test]
+    fn test_add_with_branch_already_in_use() {
+        let env = TestEnv::new();
+        let repo = env.setup_repo("repo-inuse-1");
+
+        let feature_dir = env.config.features_dir.join("inuse-test");
+        std::fs::create_dir_all(&feature_dir).unwrap();
+
+        let repo_path = env.config.repos_dir.join(&repo);
+        // Create a worktree in a DIFFERENT feature dir with the target branch name
+        let other_feature_dir = env.config.features_dir.join("other-feature");
+        std::fs::create_dir_all(&other_feature_dir).unwrap();
+        let worktree1 = other_feature_dir.join(&repo);
+
+        Command::new("git")
+            .args([
+                "-C",
+                repo_path.to_str().unwrap(),
+                "worktree",
+                "add",
+                worktree1.to_str().unwrap(),
+                "-b",
+                "bugfix/already-in-use",
+            ])
+            .status()
+            .expect("failed to create worktree");
+
+        // Now try to add the same repo to inuse-test with the same branch name
+        let result = run(
+            "inuse-test",
+            &[repo.clone()],
+            None,
+            Some("bugfix/already-in-use"),
+            &env.config,
+        );
+
+        assert!(result.is_err(), "expected error for branch already in use");
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("already checked out"),
+            "error message should mention 'already checked out'"
+        );
+    }
+
+    #[test]
+    fn test_add_with_from_and_branch() {
+        let env = TestEnv::new();
+        let repo1 = env.setup_repo("repo-both-1");
+        let repo2 = env.setup_repo("repo-both-2");
+
+        env.setup_feature_with_worktree("both-test", &repo1);
+
+        let result = run(
+            "both-test",
+            &[repo2.clone()],
+            Some("main"),
+            Some("feature/custom-branch"),
+            &env.config,
+        );
+
+        assert!(
+            result.is_ok(),
+            "add with --from and --branch failed: {:?}",
+            result.err()
+        );
+
+        let worktree_path = env.config.features_dir.join("both-test").join(&repo2);
+        assert!(worktree_path.exists(), "worktree should exist");
+
+        let branch_output = Command::new("git")
+            .args([
+                "-C",
+                worktree_path.to_str().unwrap(),
+                "branch",
+                "--show-current",
+            ])
+            .output()
+            .expect("failed to get branch");
+
+        let branch = String::from_utf8_lossy(&branch_output.stdout)
+            .trim()
+            .to_string();
+        assert_eq!(
+            branch, "feature/custom-branch",
+            "branch name should match custom branch"
+        );
     }
 }

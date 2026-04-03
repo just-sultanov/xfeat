@@ -63,6 +63,14 @@ pub enum Commands {
 
         /// Repositories to add to the feature
         repos: Vec<String>,
+
+        /// Create branch from a specific branch (e.g., develop, origin/develop)
+        #[arg(long)]
+        from: Option<String>,
+
+        /// Custom branch name (defaults to feature name)
+        #[arg(long)]
+        branch: Option<String>,
     },
 
     /// Generate shell initialization code

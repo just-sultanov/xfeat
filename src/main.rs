@@ -31,8 +31,16 @@ fn main() -> Result<()> {
         cli::Commands::Add {
             feature_name,
             repos,
+            from,
+            branch,
         } => {
-            commands::add::run(&feature_name, &repos, &config)?;
+            commands::add::run(
+                &feature_name,
+                &repos,
+                from.as_deref(),
+                branch.as_deref(),
+                &config,
+            )?;
         }
         cli::Commands::Init { shell } => {
             init::run(&shell);
