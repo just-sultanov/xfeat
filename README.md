@@ -86,25 +86,22 @@ Each feature gets its own git worktrees, so you can switch between projects and 
 
 ### `xfeat new`
 
-Create a new feature with worktrees for specified repositories:
+Create a new empty feature directory:
 
 ```bash
-xfeat new <feature-name> <repos...>
+xfeat new <feature-name>
 ```
 
 **Example:**
 
 ```bash
-xfeat new JIRA-123-fix-issue service-1 service-2 lib-1
+xfeat new JIRA-123-fix-issue
 ```
 
-This creates:
+Then add worktrees with `xfeat add`:
 
-```
-~/workspace/features/JIRA-123-fix-issue/
-├── service-1   # worktree on branch JIRA-123-fix-issue
-├── service-2   # worktree on branch JIRA-123-fix-issue
-└── lib-1       # worktree on branch JIRA-123-fix-issue
+```bash
+xfeat add JIRA-123-fix-issue service-1 service-2 lib-1
 ```
 
 ### `xfeat add`
@@ -206,13 +203,13 @@ eval "$(xfeat init zsh)"
 
 The `xf` wrapper:
 
-- `xf new <feature> <repos...>` — creates feature
-- `xf add <feature> <repos...>` — adds worktrees to an existing feature
+- `xf new <feature>` — creates an empty feature directory
+- `xf add <feature> <repos...>` — adds worktrees to a feature
 - `xf switch <feature>` — `cd` into a feature directory
 - `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
 - `xf sync <feature>` — syncs feature with main
 - `xf list` and other commands — proxied to `xfeat`
-- Tab completion for repository names (`xf new <TAB>`, `xf add <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`, `xf add <TAB>`)
+- Tab completion for repository names (`xf add <TAB>`), feature names (`xf new <TAB>`, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`, `xf add <TAB>`)
 
 Shell scripts are stored in `shell/` and embedded into the binary at compile time. They read `XF_REPOS_DIR` and `XF_FEATURES_DIR` from the environment on each invocation, making them compatible with tools like `direnv`. Tilde (`~`) in paths is expanded automatically.
 

@@ -28,13 +28,10 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Create a new feature with worktrees for specified repositories
+    /// Create a new feature directory
     New {
-        /// Name of the feature (also used as branch name)
+        /// Name of the feature
         feature_name: String,
-
-        /// Repositories to include in the feature
-        repos: Vec<String>,
     },
 
     /// List all features with their worktrees

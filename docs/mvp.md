@@ -18,9 +18,9 @@ Example project structure:
 
 ## Implemented Commands
 
-### `xfeat new <feature-name> <repos...>`
+### `xfeat new <feature-name>`
 
-Creates a feature directory with git worktrees for each specified repository.
+Creates an empty feature directory. Use `xfeat add` to add worktrees.
 
 ### `xfeat add <feature-name> <repos...>`
 
@@ -120,14 +120,13 @@ If worktree creation fails for any repository — remove all already-created wor
 ### Shell Wrapper `xf`
 
 - Zsh script stored in `shell/init.zsh`, embedded into the binary at compile time:
-  - `xf new` — calls `xfeat new` to create a feature
-  - `xf add` — calls `xfeat add` to add worktrees to an existing feature
+  - `xf new <feature>` — creates an empty feature directory
+  - `xf add <feature> <repos...>` — adds worktrees to a feature (supports `--from` and `--branch`)
   - `xf switch <feature>` — `cd` into the feature directory (errors if not found)
   - `xf remove` — `cd` out if currently in the feature directory (with confirmation prompt)
   - `xf sync` — syncs feature with latest main
   - Other commands — proxy to `xfeat`
-  - Autocompletion for repository names (`xf new <TAB>`, `xf add <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`, `xf add <TAB>`)
-  - Autocomplete filters out already-specified repos for `xf new` and `xf add`
+  - Autocompletion for repository names (`xf add <TAB>`), feature names (`xf new <TAB>`, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`, `xf add <TAB>`)
   - Autocomplete for `xf add` shows features for the first arg, repos for subsequent args
   - Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
   - Automatically expands `~` in path variables

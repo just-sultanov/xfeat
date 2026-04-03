@@ -9,9 +9,7 @@ xf() {
 
   case "$cmd" in
     new)
-      local feature="$1"
-      shift
-      xfeat new "$feature" "$@"
+      xfeat new "$@"
       ;;
     switch)
       local feature="$1"
@@ -57,16 +55,6 @@ _xfeat_complete() {
   elif [ $CURRENT -gt 2 ]; then
     local cmd="${words[2]}"
     case "$cmd" in
-      new)
-        if [[ -d "$repos_dir" ]]; then
-          repos=("${(@f)$(command ls -1 "$repos_dir" 2>/dev/null)}")
-          local specified=("${(@)words[4,-1]}")
-          repos=("${(@)repos:|specified}")
-          if (( ${#repos} > 0 )); then
-            _describe 'repository' repos
-          fi
-        fi
-        ;;
       remove|sync|switch)
         if [[ -d "$features_dir" ]]; then
           features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")

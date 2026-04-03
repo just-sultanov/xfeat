@@ -13,11 +13,8 @@ fn main() -> Result<()> {
     let config = config::Config::load()?;
 
     match cli.command {
-        cli::Commands::New {
-            feature_name,
-            repos,
-        } => {
-            commands::new::run(&feature_name, &repos, &config)?;
+        cli::Commands::New { feature_name } => {
+            commands::new::run(&feature_name, &config)?;
         }
         cli::Commands::List => {
             commands::list::run(&config)?;
