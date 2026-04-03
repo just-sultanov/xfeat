@@ -73,8 +73,8 @@ mod tests {
             let repos_dir = tmp.join("repos");
             let features_dir = tmp.join("features");
 
-            fs::create_dir_all(&repos_dir).unwrap();
-            fs::create_dir_all(&features_dir).unwrap();
+            std::fs::create_dir_all(&repos_dir).unwrap();
+            std::fs::create_dir_all(&features_dir).unwrap();
 
             Self {
                 config: Config {
@@ -103,7 +103,7 @@ mod tests {
 
         fn setup_feature_with_worktree(&self, feature_name: &str, repo_name: &str) {
             let feature_dir = self.config.features_dir.join(feature_name);
-            fs::create_dir_all(&feature_dir).unwrap();
+            std::fs::create_dir_all(&feature_dir).unwrap();
 
             let repo_path = self.config.repos_dir.join(repo_name);
             let worktree_path = feature_dir.join(repo_name);
@@ -127,7 +127,7 @@ mod tests {
 
     impl Drop for TestEnv {
         fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.tmp);
+            let _ = std::fs::remove_dir_all(&self.tmp);
         }
     }
 
@@ -196,7 +196,7 @@ mod tests {
         let env = TestEnv::new();
 
         let feature_dir = env.config.features_dir.join("empty-feature");
-        fs::create_dir_all(&feature_dir).unwrap();
+        std::fs::create_dir_all(&feature_dir).unwrap();
 
         let result = run(
             "empty-feature",
