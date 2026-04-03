@@ -125,6 +125,27 @@ If worktree creation fails for any repository — remove all already-created wor
   - Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
   - Automatically expands `~` in path variables
 
+### Version Display
+
+- `--version` flag shows version from `Cargo.toml` (e.g., `0.1.0`)
+- `--help` shows full version string with git SHA and build date (e.g., `v0.1.0@abc1234 (2026-04-03)`)
+- Version information generated at compile time via `build.rs`
+
+### Release Process
+
+- GitHub Actions workflows for CI and automated releases
+- CI runs on push to `main`: lint → test → build for all platforms
+- Release triggers on `v*` tags: lint → test → build → draft release
+- Linux binary is statically linked (musl) for maximum compatibility
+- macOS binaries built for both aarch64 and x86_64 architectures
+- Draft releases allow review before publishing
+
+### Development Tooling
+
+- mise tasks for version management (`bump-version`, `pre-publish`, `publish`)
+- Cross-platform build and packaging tasks (`dist-linux`, `dist-macos-arm`, `dist-macos-x86`, `dist-windows`)
+- Installable via `mise install github:just-sultanov/xfeat`
+
 ### Future Commands
 
 - `xfeat status` — show git status across all worktrees in a feature
