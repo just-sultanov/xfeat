@@ -4,6 +4,10 @@ _.path = [{ path = "./bin", tools = true }]
 [tools]
 rust = { version = "1.94.1", components = "rustfmt,clippy" }
 
+##
+# General
+##
+
 [tasks.clean]
 description = "Cleanup"
 run = ["cargo clean"]
@@ -11,6 +15,139 @@ run = ["cargo clean"]
 [tasks.setup-tools]
 description = "Install required development tools"
 run = "cargo install cargo-edit"
+
+##
+# Lint
+##
+
+[tasks.setup-linters]
+description = "Ensure lint tools are available"
+run = "rustup component add rustfmt clippy"
+
+[tasks.lint]
+description = "Run formatters and linters"
+depends = ["setup-linters"]
+run = ["cargo fmt -- --check", "cargo clippy -- -D warnings"]
+
+##
+# Test
+##
+
+[tasks.test]
+description = "Run all tests"
+run = "cargo test -- --nocapture"
+
+[tasks.check]
+description = "Run lint and tests"
+run = ["mise run lint", "mise run test"]
+
+##
+# Build
+##
+
+# Linux
+
+[tasks.setup-linux]
+description = "Ensure Linux target is available"
+run = "rustup target add x86_64-unknown-linux-gnu"
+
+[tasks.build-linux]
+description = "Build release binary for Linux x86_64"
+depends = ["setup-linux"]
+run = "cargo build --release --target x86_64-unknown-linux-gnu"
+
+# macOS arm
+
+[tasks.setup-macos-arm]
+description = "Ensure macOS aarch64 target is available"
+run = "rustup target add aarch64-apple-darwin"
+
+[tasks.build-macos-arm]
+description = "Build release binary for macOS aarch64"
+depends = ["setup-macos-arm"]
+run = "cargo build --release --target aarch64-apple-darwin"
+
+# macOS x86
+
+[tasks.setup-macos-x86]
+description = "Ensure macOS x86_64 target is available"
+run = "rustup target add x86_64-apple-darwin"
+
+[tasks.build-macos-x86]
+description = "Build release binary for macOS x86_64"
+depends = ["setup-macos-x86"]
+run = "cargo build --release --target x86_64-apple-darwin"
+
+# All platforms
+
+[tasks.build-macos]
+description = "Build release binary for macOS (aarch64 + x86_64)"
+depends = ["build-macos-arm", "build-macos-x86"]
+
+# Windows
+
+[tasks.setup-windows]
+description = "Ensure Windows target is available"
+run = "rustup target add x86_64-pc-windows-gnu"
+
+[tasks.build-windows]
+description = "Build release binary for Windows x86_64"
+depends = ["setup-windows"]
+run = "cargo build --release --target x86_64-pc-windows-gnu"
+
+##
+# Dist
+##
+
+# Linux
+
+[tasks.dist-linux]
+description = "Build and package Linux binary"
+depends = ["build-linux"]
+run = """
+  mkdir -p dist
+  VERSION=$(./target/x86_64-unknown-linux-gnu/release/xfeat --version | awk '{print $2}')
+  tar -czf "dist/xfeat-v${VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
+    -C target/x86_64-unknown-linux-gnu/release xfeat
+"""
+
+# macOS
+
+[tasks.dist-macos-arm]
+description = "Build and package macOS aarch64 binary"
+depends = ["build-macos-arm"]
+run = """
+  mkdir -p dist
+  VERSION=$(./target/aarch64-apple-darwin/release/xfeat --version | awk '{print $2}')
+  tar -czf "dist/xfeat-v${VERSION}-aarch64-apple-darwin.tar.gz" \
+    -C target/aarch64-apple-darwin/release xfeat
+"""
+
+[tasks.dist-macos-x86]
+description = "Build and package macOS x86_64 binary"
+depends = ["build-macos-x86"]
+run = """
+  mkdir -p dist
+  VERSION=$(./target/x86_64-apple-darwin/release/xfeat --version | awk '{print $2}')
+  tar -czf "dist/xfeat-v${VERSION}-x86_64-apple-darwin.tar.gz" \
+    -C target/x86_64-apple-darwin/release xfeat
+"""
+
+# Windows
+
+[tasks.dist-windows]
+description = "Build and package Windows binary"
+depends = ["build-windows"]
+run = '''
+  New-Item -ItemType Directory -Force -Path dist
+  $version = (./target/x86_64-pc-windows-gnu/release/xfeat.exe --version).Split(' ')[1]
+  Compress-Archive -Path "target\x86_64-pc-windows-gnu\release\xfeat.exe" `
+    -DestinationPath "dist\xfeat-v${version}-x86_64-pc-windows-gnu.zip"
+'''
+
+##
+# Publish
+##
 
 [tasks.bump-version]
 description = "Bump version in Cargo.toml (major|minor|patch). Run setup-tools first."
@@ -49,112 +186,4 @@ run = '''
   VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
   git push
   git push origin "v${VERSION}"
-'''
-
-[tasks.setup-linters]
-description = "Ensure lint tools are available"
-run = "rustup component add rustfmt clippy"
-
-[tasks.setup-linux]
-description = "Ensure Linux target is available"
-run = "rustup target add x86_64-unknown-linux-gnu"
-
-[tasks.setup-macos]
-description = "Ensure macOS targets are available"
-run = [
-  "rustup target add aarch64-apple-darwin",
-  "rustup target add x86_64-apple-darwin",
-]
-
-[tasks.setup-windows]
-description = "Ensure Windows target is available"
-run = "rustup target add x86_64-pc-windows-gnu"
-
-[tasks.lint]
-description = "Run formatters and linters"
-depends = ["setup-linters"]
-run = ["cargo fmt -- --check", "cargo clippy -- -D warnings"]
-
-[tasks.test]
-description = "Run all tests"
-run = "cargo test -- --nocapture"
-
-[tasks.check]
-description = "Run lint and tests"
-run = ["mise run lint", "mise run test"]
-
-[tasks.build]
-description = "Build debug binary"
-run = "cargo build"
-
-[tasks.release]
-description = "Build release binary"
-run = "cargo build --release"
-
-[tasks.build-linux]
-description = "Build release binary for Linux x86_64"
-depends = ["setup-linux"]
-run = "cargo build --release --target x86_64-unknown-linux-gnu"
-
-[tasks.build-macos-arm]
-description = "Build release binary for macOS aarch64"
-depends = ["setup-macos"]
-run = "cargo build --release --target aarch64-apple-darwin"
-
-[tasks.build-macos-x86]
-description = "Build release binary for macOS x86_64"
-depends = ["setup-macos"]
-run = "cargo build --release --target x86_64-apple-darwin"
-
-[tasks.build-macos]
-description = "Build release binary for macOS (aarch64 + x86_64)"
-depends = ["build-macos-arm", "build-macos-x86"]
-
-[tasks.build-windows]
-description = "Build release binary for Windows x86_64"
-depends = ["setup-windows"]
-run = "cargo build --release --target x86_64-pc-windows-gnu"
-
-[tasks.build-all]
-description = "Build release binaries for all platforms"
-depends = ["build-linux", "build-macos", "build-windows"]
-
-[tasks.make-dist-linux]
-description = "Build and package Linux binary"
-depends = ["build-linux"]
-run = """
-  mkdir -p dist
-  VERSION=$(./target/x86_64-unknown-linux-gnu/release/xfeat --version | awk '{print $2}')
-  tar -czf "dist/xfeat-v${VERSION}-x86_64-unknown-linux-gnu.tar.gz" \
-    -C target/x86_64-unknown-linux-gnu/release xfeat
-"""
-
-[tasks.make-dist-macos-arm]
-description = "Build and package macOS aarch64 binary"
-depends = ["build-macos-arm"]
-run = """
-  mkdir -p dist
-  VERSION=$(./target/aarch64-apple-darwin/release/xfeat --version | awk '{print $2}')
-  tar -czf "dist/xfeat-v${VERSION}-aarch64-apple-darwin.tar.gz" \
-    -C target/aarch64-apple-darwin/release xfeat
-"""
-
-[tasks.make-dist-macos-x86]
-description = "Build and package macOS x86_64 binary"
-depends = ["build-macos-x86"]
-run = """
-  mkdir -p dist
-  VERSION=$(./target/x86_64-apple-darwin/release/xfeat --version | awk '{print $2}')
-  tar -czf "dist/xfeat-v${VERSION}-x86_64-apple-darwin.tar.gz" \
-    -C target/x86_64-apple-darwin/release xfeat
-"""
-
-[tasks.make-dist-windows]
-description = "Build and package Windows binary"
-depends = ["build-windows"]
-run = '''
-  New-Item -ItemType Directory -Force -Path dist
-  $version = (./target/x86_64-pc-windows-gnu/release/xfeat.exe --version).Split(' ')[1]
-  Compress-Archive -Path "target\x86_64-pc-windows-gnu\release\xfeat.exe" `
-    -DestinationPath "dist\xfeat-v${version}-x86_64-pc-windows-gnu.zip"
 '''
