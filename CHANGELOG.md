@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.3 - 2026-04-03
+
+### Added
+
+- `xf add` — add worktrees for repos to an existing feature
+- `xf add --from <branch>` — create worktree branch from a specific branch
+- `xf add --branch <name>` — use a custom branch name instead of the feature name
+- Empty features are now shown in `xf list` with `(empty)` marker
+
+### Changed
+
+- `xf new` autocomplete now excludes already-specified repos
+- `xf add` autocomplete excludes repos already added to the feature
+- `xf add` autocomplete shows features for the first arg, repos for subsequent args
+
 ## 0.1.2 - 2026-04-03
 
 ### Changed

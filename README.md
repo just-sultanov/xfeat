@@ -113,13 +113,25 @@ Add worktrees for repos to an existing feature:
 
 ```bash
 xfeat add <feature-name> <repos...>
+xfeat add <feature-name> <repos...> --from <branch>
+xfeat add <feature-name> <repos...> --branch <branch-name>
+xfeat add <feature-name> <repos...> --from <branch> --branch <branch-name>
 ```
 
-**Example:**
+**Examples:**
 
 ```bash
+# Add repo with default branch name (feature name)
 xfeat add JIRA-123 service-b
+
+# Add repo, creating branch from a specific branch
+xfeat add JIRA-123 service-b --from develop
+
+# Add repo with a custom branch name
+xfeat add JIRA-123 service-b --from master --branch bugfix/JIRA-123
 ```
+
+Skips repos that already have worktrees in the feature.
 
 ### `xfeat list`
 
@@ -135,9 +147,12 @@ xfeat list
 ├── JIRA-123
 │   ├── service-1 (JIRA-123)
 │   └── service-2 (JIRA-123)
-└── JIRA-456
-    └── service-1 (JIRA-456)
+├── JIRA-456
+│   └── service-1 (JIRA-456)
+└── JIRA-789 (empty)
 ```
+
+Empty features (created with `xf new` but without worktrees yet) are shown with `(empty)`.
 
 ### `xfeat remove`
 
