@@ -184,6 +184,6 @@ run = '''
     exit 1
   fi
   VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-  git push
+  git push -u origin HEAD
   git push origin "v${VERSION}"
 '''

@@ -78,6 +78,9 @@ jobs:
     name: Build (Windows x86_64)
     needs: test
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v4
