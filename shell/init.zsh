@@ -34,6 +34,11 @@ xf() {
         cd "$features_dir"
       fi
       ;;
+    add)
+      local feature="$1"
+      shift
+      xfeat add "$feature" "$@"
+      ;;
     *)
       xfeat "$cmd" "$@"
       ;;
@@ -45,7 +50,7 @@ _xfeat_complete() {
   local repos_dir="${XF_REPOS_DIR/#\~/$HOME}"
   local features_dir="${XF_FEATURES_DIR/#\~/$HOME}"
 
-  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main" "switch:switch to a feature")
+  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main" "switch:switch to a feature" "add:add worktrees to an existing feature")
 
   if [ $CURRENT -eq 2 ]; then
     _describe 'command' commands
@@ -65,6 +70,23 @@ _xfeat_complete() {
           features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")
           if (( ${#features} > 0 )); then
             _describe 'feature' features
+          fi
+        fi
+        ;;
+      add)
+        if [ $CURRENT -eq 3 ]; then
+          if [[ -d "$features_dir" ]]; then
+            features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")
+            if (( ${#features} > 0 )); then
+              _describe 'feature' features
+            fi
+          fi
+        else
+          if [[ -d "$repos_dir" ]]; then
+            repos=("${(@f)$(command ls -1 "$repos_dir" 2>/dev/null)}")
+            if (( ${#repos} > 0 )); then
+              _describe 'repository' repos
+            fi
           fi
         fi
         ;;

@@ -107,6 +107,20 @@ This creates:
 └── lib-1       # worktree on branch JIRA-123-fix-issue
 ```
 
+### `xfeat add`
+
+Add worktrees for repos to an existing feature:
+
+```bash
+xfeat add <feature-name> <repos...>
+```
+
+**Example:**
+
+```bash
+xfeat add JIRA-123 service-b
+```
+
 ### `xfeat list`
 
 List all features with their worktrees and current branches:
@@ -178,11 +192,12 @@ eval "$(xfeat init zsh)"
 The `xf` wrapper:
 
 - `xf new <feature> <repos...>` — creates feature
+- `xf add <feature> <repos...>` — adds worktrees to an existing feature
 - `xf switch <feature>` — `cd` into a feature directory
 - `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
 - `xf sync <feature>` — syncs feature with main
 - `xf list` and other commands — proxied to `xfeat`
-- Tab completion for repository names (`xf new <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+- Tab completion for repository names (`xf new <TAB>`, `xf add <TAB>`), feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`, `xf add <TAB>`)
 
 Shell scripts are stored in `shell/` and embedded into the binary at compile time. They read `XF_REPOS_DIR` and `XF_FEATURES_DIR` from the environment on each invocation, making them compatible with tools like `direnv`. Tilde (`~`) in paths is expanded automatically.
 

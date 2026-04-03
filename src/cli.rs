@@ -56,6 +56,15 @@ pub enum Commands {
         feature_name: String,
     },
 
+    /// Add worktrees for repos to an existing feature
+    Add {
+        /// Name of the feature to add worktrees to
+        feature_name: String,
+
+        /// Repositories to add to the feature
+        repos: Vec<String>,
+    },
+
     /// Generate shell initialization code
     Init {
         /// Shell to generate init code for

@@ -28,6 +28,12 @@ fn main() -> Result<()> {
         cli::Commands::Sync { feature_name } => {
             commands::sync::run(&feature_name, &config)?;
         }
+        cli::Commands::Add {
+            feature_name,
+            repos,
+        } => {
+            commands::add::run(&feature_name, &repos, &config)?;
+        }
         cli::Commands::Init { shell } => {
             init::run(&shell);
         }
