@@ -8,6 +8,49 @@ rust = { version = "1.94.1", components = "rustfmt,clippy" }
 description = "Cleanup"
 run = ["cargo clean"]
 
+[tasks.setup-tools]
+description = "Install required development tools"
+run = "cargo install cargo-edit"
+
+[tasks.bump-version]
+description = "Bump version in Cargo.toml (major|minor|patch). Run setup-tools first."
+run = "cargo set-version --bump $1"
+
+[tasks.pre-publish]
+description = "Prepare a new version for release"
+run = '''
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if [ "$BRANCH" != "main" ]; then
+    echo "Error: not on main branch. Current branch: $BRANCH"
+    exit 1
+  fi
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "Error: working tree is not clean. Commit changes first."
+    exit 1
+  fi
+  VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+  TAG="v${VERSION}"
+  if git rev-parse "$TAG" >/dev/null 2>&1; then
+    echo "Error: tag $TAG already exists."
+    exit 1
+  fi
+  git tag -a "$TAG" -m "Release $VERSION"
+  echo "Created tag: $TAG"
+'''
+
+[tasks.publish]
+description = "Publish a new release"
+run = '''
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if [ "$BRANCH" != "main" ]; then
+    echo "Error: not on main branch. Current branch: $BRANCH"
+    exit 1
+  fi
+  VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+  git push
+  git push origin "v${VERSION}"
+'''
+
 [tasks.setup-linters]
 description = "Ensure lint tools are available"
 run = "rustup component add rustfmt clippy"
