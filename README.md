@@ -202,26 +202,6 @@ export XF_FEATURES_DIR=~/projects/project-x/features
 
 Paths can be absolute (`/tmp/repos`), relative (`./repos`), or tilde-based (`~/repos`). All are resolved correctly.
 
-## Project Structure
-
-```
-src/
-├── main.rs           # Entry point, arg parsing, command dispatch
-├── cli.rs            # CLI definition (clap)
-├── config.rs         # Configuration (env vars with defaults)
-├── error.rs          # Custom error types
-├── init.rs           # Shell initialization code (embeds shell/ scripts)
-├── worktree.rs       # Git worktree operations
-└── commands/
-    ├── mod.rs
-    ├── new.rs        # Implementation of `new` command
-    ├── list.rs       # Implementation of `list` command
-    ├── remove.rs     # Implementation of `remove` command
-    └── sync.rs       # Implementation of `sync` command
-shell/
-└── init.zsh          # Zsh initialization with completions (embedded at compile time)
-```
-
 ## License
 
 MIT — see [LICENSE](LICENSE) for details.
