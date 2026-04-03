@@ -4,15 +4,83 @@ CLI utility for managing git worktrees across multiple repositories.
 
 ## Overview
 
-`xfeat` is designed for developers working on multiple products simultaneously. Each product has its own workspace with `repos` (source repositories) and `features` (worktree branches) directories. Environment variables `XF_REPOS_DIR` and `XF_FEATURES_DIR` are scoped per-project, allowing isolated feature development across multiple repositories within a single product context.
+`xfeat` is designed for developers working on multiple projects simultaneously. Each project has its own workspace with `repos` (source repositories) and `features` (worktree branches) directories. Environment variables `XF_REPOS_DIR` and `XF_FEATURES_DIR` are scoped per-project, allowing isolated feature development across multiple repositories within a single project context.
 
 By leveraging git worktrees, `xfeat` enables parallel development on multiple features without the overhead of cloning repositories or switching branches. Each feature gets its own isolated workspace, making it ideal for AI-assisted development where multiple coding agents can work on different features simultaneously without conflicts.
 
 ## Installation
 
 ```bash
-cargo install --path .
+# via mise
+mise install github:just-sultanov/xfeat
+
+# via cargo
+cargo install xfeat  # soon
 ```
+
+## Quick Start
+
+`xfeat` shines when you work on multiple projects simultaneously. Each project has its own workspace with isolated `repos` and `features` directories, so you can develop multiple features in parallel — including with AI coding agents that work on different features at the same time without conflicts.
+
+> **Tip:** E.g., you can use `direnv` or `mise env` to automatically set `XF_REPOS_DIR` and `XF_FEATURES_DIR` when entering a project directory.
+
+**Project A — e-commerce platform:**
+
+```
+~/projects/store/
+├── repos/
+│   ├── payment-service/
+│   ├── checkout-api/
+│   └── frontend/
+└── features/           # empty
+```
+
+```bash
+cd ~/projects/store
+xf new checkout-v2 payment-service checkout-api
+```
+
+```
+~/projects/store/
+├── repos/
+│   ├── payment-service/
+│   ├── checkout-api/
+│   └── frontend/
+└── features/
+    └── checkout-v2/
+        ├── payment-service/  # worktree on branch checkout-v2
+        └── checkout-api/     # worktree on branch checkout-v2
+```
+
+**Project B — analytics dashboard:**
+
+```
+~/projects/analytics/
+├── repos/
+│   ├── frontend/
+│   ├── backend/
+│   └── data-pipeline/
+└── features/           # empty
+```
+
+```bash
+cd ~/projects/analytics
+xf new dashboard-redesign frontend backend
+```
+
+```
+~/projects/analytics/
+├── repos/
+│   ├── frontend/
+│   ├── backend/
+│   └── data-pipeline/
+└── features/
+    └── dashboard-redesign/
+        ├── frontend/     # worktree on branch dashboard-redesign
+        └── backend/      # worktree on branch dashboard-redesign
+```
+
+Each feature gets its own git worktrees, so you can switch between projects and features instantly without stashing or switching branches.
 
 ## Commands
 
@@ -86,6 +154,7 @@ xfeat sync <feature-name>
 ```
 
 For each worktree in the feature:
+
 1. Fetches latest changes from remote
 2. Rebases the feature branch onto `origin/main` (auto-detected)
 3. Stops on first conflict with an error message
@@ -107,6 +176,7 @@ eval "$(xfeat init zsh)"
 **Supported shells:** `zsh`
 
 The `xf` wrapper:
+
 - `xf new <feature> <repos...>` — creates feature
 - `xf switch <feature>` — `cd` into a feature directory
 - `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
