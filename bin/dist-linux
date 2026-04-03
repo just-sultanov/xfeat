@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+mkdir -p dist
+VERSION=$(./target/x86_64-unknown-linux-musl/release/xfeat --version | awk '{print $2}')
+tar -czf "dist/xfeat-v${VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+  -C target/x86_64-unknown-linux-musl/release xfeat

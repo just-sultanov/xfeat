@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+mise run build-macos-arm
+mise run build-macos-x86

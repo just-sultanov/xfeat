@@ -10,11 +10,11 @@ rust = { version = "1.94.1", components = "rustfmt,clippy" }
 
 [tasks.clean]
 description = "Cleanup"
-run = ["cargo clean"]
+file = "bin/clean"
 
 [tasks.setup-tools]
 description = "Install required development tools"
-run = "cargo install cargo-edit"
+file = "bin/setup-tools"
 
 ##
 # Lint
@@ -22,12 +22,12 @@ run = "cargo install cargo-edit"
 
 [tasks.setup-linters]
 description = "Ensure lint tools are available"
-run = "rustup component add rustfmt clippy"
+file = "bin/setup-linters"
 
 [tasks.lint]
 description = "Run formatters and linters"
 depends = ["setup-linters"]
-run = ["cargo fmt -- --check", "cargo clippy -- -D warnings"]
+file = "bin/lint"
 
 ##
 # Test
@@ -35,7 +35,7 @@ run = ["cargo fmt -- --check", "cargo clippy -- -D warnings"]
 
 [tasks.test]
 description = "Run all tests"
-run = "cargo test -- --nocapture"
+file = "bin/test"
 
 [tasks.check]
 description = "Run lint and tests"
@@ -49,54 +49,52 @@ run = ["mise run lint", "mise run test"]
 
 [tasks.setup-linux]
 description = "Ensure Linux musl target is available"
-run = [
-  "sudo apt-get install -y musl-tools",
-  "rustup target add x86_64-unknown-linux-musl",
-]
+file = "bin/setup-linux"
 
 [tasks.build-linux]
 description = "Build static release binary for Linux x86_64 (musl)"
 depends = ["setup-linux"]
-run = "cargo build --release --target x86_64-unknown-linux-musl"
+file = "bin/build-linux"
 
 # macOS arm
 
 [tasks.setup-macos-arm]
 description = "Ensure macOS aarch64 target is available"
-run = "rustup target add aarch64-apple-darwin"
+file = "bin/setup-macos-arm"
 
 [tasks.build-macos-arm]
 description = "Build release binary for macOS aarch64"
 depends = ["setup-macos-arm"]
-run = "cargo build --release --target aarch64-apple-darwin"
+file = "bin/build-macos-arm"
 
 # macOS x86
 
 [tasks.setup-macos-x86]
 description = "Ensure macOS x86_64 target is available"
-run = "rustup target add x86_64-apple-darwin"
+file = "bin/setup-macos-x86"
 
 [tasks.build-macos-x86]
 description = "Build release binary for macOS x86_64"
 depends = ["setup-macos-x86"]
-run = "cargo build --release --target x86_64-apple-darwin"
+file = "bin/build-macos-x86"
 
 # All platforms
 
 [tasks.build-macos]
 description = "Build release binary for macOS (aarch64 + x86_64)"
 depends = ["build-macos-arm", "build-macos-x86"]
+file = "bin/build-macos"
 
 # Windows
 
 [tasks.setup-windows]
 description = "Ensure Windows target is available"
-run = "rustup target add x86_64-pc-windows-gnu"
+file = "bin/setup-windows"
 
 [tasks.build-windows]
 description = "Build release binary for Windows x86_64"
 depends = ["setup-windows"]
-run = "cargo build --release --target x86_64-pc-windows-gnu"
+file = "bin/build-windows"
 
 ##
 # Dist
@@ -107,41 +105,26 @@ run = "cargo build --release --target x86_64-pc-windows-gnu"
 [tasks.dist-linux]
 description = "Build and package static Linux binary"
 depends = ["build-linux"]
-run = """
-  mkdir -p dist
-  VERSION=$(./target/x86_64-unknown-linux-musl/release/xfeat --version | awk '{print $2}')
-  tar -czf "dist/xfeat-v${VERSION}-x86_64-unknown-linux-musl.tar.gz" \
-    -C target/x86_64-unknown-linux-musl/release xfeat
-"""
+file = "bin/dist-linux"
 
 # macOS
 
 [tasks.dist-macos-arm]
 description = "Build and package macOS aarch64 binary"
 depends = ["build-macos-arm"]
-run = """
-  mkdir -p dist
-  VERSION=$(./target/aarch64-apple-darwin/release/xfeat --version | awk '{print $2}')
-  tar -czf "dist/xfeat-v${VERSION}-aarch64-apple-darwin.tar.gz" \
-    -C target/aarch64-apple-darwin/release xfeat
-"""
+file = "bin/dist-macos-arm"
 
 [tasks.dist-macos-x86]
 description = "Build and package macOS x86_64 binary"
 depends = ["build-macos-x86"]
-run = """
-  mkdir -p dist
-  VERSION=$(./target/x86_64-apple-darwin/release/xfeat --version | awk '{print $2}')
-  tar -czf "dist/xfeat-v${VERSION}-x86_64-apple-darwin.tar.gz" \
-    -C target/x86_64-apple-darwin/release xfeat
-"""
+file = "bin/dist-macos-x86"
 
 # Windows
 
 [tasks.dist-windows]
 description = "Build and package Windows binary"
 depends = ["build-windows"]
-run = "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path dist; $v = (./target/x86_64-pc-windows-gnu/release/xfeat.exe --version).Split(' ')[1]; Compress-Archive -Path 'target\\x86_64-pc-windows-gnu\\release\\xfeat.exe' -DestinationPath \\\"dist\\xfeat-v$($v)-x86_64-pc-windows-gnu.zip\\\"\""
+file = "bin/dist-windows.ps1"
 
 ##
 # Publish
@@ -149,39 +132,12 @@ run = "powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Pat
 
 [tasks.bump-version]
 description = "Bump version in Cargo.toml (major|minor|patch). Run setup-tools first."
-run = "cargo set-version --bump $1"
+file = "bin/bump-version"
 
 [tasks.pre-publish]
 description = "Prepare a new version for release"
-run = '''
-  BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  if [ "$BRANCH" != "main" ]; then
-    echo "Error: not on main branch. Current branch: $BRANCH"
-    exit 1
-  fi
-  if [ -n "$(git status --porcelain)" ]; then
-    echo "Error: working tree is not clean. Commit changes first."
-    exit 1
-  fi
-  VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-  TAG="v${VERSION}"
-  if git rev-parse "$TAG" >/dev/null 2>&1; then
-    echo "Error: tag $TAG already exists."
-    exit 1
-  fi
-  git tag -a "$TAG" -m "Release $VERSION"
-  echo "Created tag: $TAG"
-'''
+file = "bin/pre-publish"
 
 [tasks.publish]
 description = "Publish a new release"
-run = '''
-  BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  if [ "$BRANCH" != "main" ]; then
-    echo "Error: not on main branch. Current branch: $BRANCH"
-    exit 1
-  fi
-  VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
-  git push -u origin HEAD
-  git push origin "v${VERSION}"
-'''
+file = "bin/publish"
