@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - `xf new` now only creates an empty feature directory (use `xf add` to add worktrees)
-- `xf new` autocomplete now shows feature names instead of repos
+- `xf new` autocomplete excludes repos already specified in the command
 - `xf add` autocomplete excludes repos already added to the feature
 - `xf add` autocomplete shows features for the first arg, repos for subsequent args
 
