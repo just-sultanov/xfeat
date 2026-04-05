@@ -19,6 +19,12 @@ By leveraging git worktrees, `xfeat` enables parallel development on multiple fe
 
 ## Installation
 
+### Requirements
+
+- **git** — xfeat relies on git worktrees
+
+### Install
+
 ```bash
 # via mise
 mise install github:just-sultanov/xfeat
@@ -29,13 +35,39 @@ cargo install xfeat  # soon
 
 ## Quick Start
 
-Set up your project workspace and start developing features in parallel:
+### Set up environment
+
+Choose one of the following methods to configure your project:
+
+**Using export:**
 
 ```bash
-cd ~/projects/store
 export XF_REPOS_DIR=~/projects/store/repos
 export XF_FEATURES_DIR=~/projects/store/features
 ```
+
+**Using direnv:**
+
+Create an `.envrc` file:
+
+```bash
+export XF_REPOS_DIR=~/projects/store/repos
+export XF_FEATURES_DIR=~/projects/store/features
+```
+
+**Using mise env:**
+
+Add to `mise.toml`:
+
+```toml
+[env]
+XF_REPOS_DIR = "~/projects/store/repos"
+XF_FEATURES_DIR = "~/projects/store/features"
+```
+
+### Create your first feature
+
+Set up your project workspace and start developing features in parallel:
 
 ```
 ~/projects/store/
@@ -184,13 +216,6 @@ xf list
     ├── frontend (dashboard-redesign)
     └── backend (dashboard-redesign)
 ```
-
-> **Tip:** Use `direnv` or `mise env` to automatically set `XF_REPOS_DIR` and `XF_FEATURES_DIR` when entering a project directory. Add an `.envrc` file:
->
-> ```bash
-> export XF_REPOS_DIR=~/projects/store/repos
-> export XF_FEATURES_DIR=~/projects/store/features
-> ```
 
 ## Commands
 
