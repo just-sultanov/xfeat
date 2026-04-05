@@ -141,3 +141,7 @@ file = "bin/pre-publish"
 [tasks.publish]
 description = "Publish a new release"
 file = "bin/publish"
+
+[tasks.publish-crates]
+description = "Publish to crates.io"
+file = "bin/publish-crates"

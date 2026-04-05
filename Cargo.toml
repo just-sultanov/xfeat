@@ -9,6 +9,7 @@ authors = ["Ilshat Sultanov <ilshat@sultanov.team>"]
 repository = "https://github.com/just-sultanov/xfeat"
 keywords = ["git", "worktree", "cli"]
 categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
 
 [dependencies]
 anyhow = "1"
