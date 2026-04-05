@@ -28,7 +28,8 @@ src/
 
 - `build.rs` — injects version/git-sha/built-at via cargo env vars
 - `shell/init.zsh` — `xf` wrapper function + zsh tab completions
-- `bin/` — development scripts (test, lint, build, dist, publish)
+- `bin/` — development scripts (test, lint, build, dist, publish, install)
+- `install.sh` / `install.ps1` — standalone install scripts for end users
 - `mise.toml` — tool versions and task definitions
 
 ## Dependencies
@@ -56,6 +57,7 @@ When `mise` is available, use `mise run <task>`. Otherwise, run `bin/<script>` d
 | Build (Linux)       | `mise run build-linux` or `bin/build-linux`         |
 | Build (Windows)     | `mise run build-windows` or `bin/build-windows`     |
 | Setup tools         | `mise run setup-tools` or `bin/setup-tools`         |
+| Publish to crates.io| `mise run publish-crates` or `bin/publish-crates`   |
 
 Always run `mise run check` before committing changes.
 

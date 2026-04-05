@@ -13,7 +13,17 @@ I teach you how to use `xfeat` (aliased as `xf`) — a CLI utility for managing 
 
 ## Prerequisites
 
-- `xfeat` must be installed and available as `xf` in PATH
+### Installation
+
+- **Using cargo:** `cargo install xfeat --locked`
+- **Using mise:** `mise install github:just-sultanov/xfeat`
+- **Using curl (macOS/Linux):** `curl -fsSL https://raw.githubusercontent.com/just-sultanov/xfeat/main/install.sh | bash`
+- **Using PowerShell (Windows):** `irm https://raw.githubusercontent.com/just-sultanov/xfeat/main/install.ps1 | iex`
+- **Pre-built binaries:** [GitHub Releases](https://github.com/just-sultanov/xfeat/releases)
+
+### Environment
+
+- `xfeat` must be available as `xf` in PATH
 - Environment variables must be set:
   - `XF_REPOS_DIR` — directory containing source git repositories
   - `XF_FEATURES_DIR` — directory where feature worktrees are created
