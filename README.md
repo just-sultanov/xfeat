@@ -25,13 +25,48 @@ By leveraging git worktrees, `xfeat` enables parallel development on multiple fe
 
 ### Install
 
-```bash
-# via mise
-mise install github:just-sultanov/xfeat
+**Using cargo:**
 
-# via cargo
-cargo install xfeat  # soon
+```bash
+cargo install xfeat --locked
 ```
+
+**Using mise:**
+
+```bash
+mise install github:just-sultanov/xfeat
+```
+
+**Using curl (macOS / Linux):**
+
+```bash
+# Install to ~/.local/bin (default)
+curl -fsSL https://raw.githubusercontent.com/just-sultanov/xfeat/main/install.sh | bash
+
+# Install to a custom directory
+curl -fsSL https://raw.githubusercontent.com/just-sultanov/xfeat/main/install.sh | bash -s -- --prefix /usr/local/bin
+```
+
+**Using PowerShell (Windows):**
+
+```powershell
+# Install to $env:USERPROFILE\.local\bin (default)
+irm https://raw.githubusercontent.com/just-sultanov/xfeat/main/install.ps1 | iex
+
+# Install to a custom directory
+irm https://raw.githubusercontent.com/just-sultanov/xfeat/main/install.ps1 | iex -ArgumentList '-Prefix', 'C:\tools'
+```
+
+**Using pre-built binaries:**
+
+Download the latest release from [GitHub Releases](https://github.com/just-sultanov/xfeat/releases).
+
+| Platform               | File                                     |
+| ---------------------- | ---------------------------------------- |
+| macOS (Apple Silicon)  | `xfeat-aarch64-apple-darwin.tar.gz`      |
+| macOS (Intel)          | `xfeat-x86_64-apple-darwin.tar.gz`       |
+| Linux (x86_64, static) | `xfeat-x86_64-unknown-linux-musl.tar.gz` |
+| Windows (x86_64)       | `xfeat-x86_64-pc-windows-gnu.zip`        |
 
 ## Quick Start
 
