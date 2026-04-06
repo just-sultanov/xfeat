@@ -188,4 +188,4 @@ xf sync ai-checkout-v3
 - Branch names default to the feature name unless `--branch` is specified
 - `--from` specifies the source branch to create the feature branch from
 - Always run `xf sync` before merging to ensure the feature is up to date
-- The `xf` shell wrapper (from `xfeat init zsh`) provides tab completion for commands and arguments
+- The `xf` shell wrapper (from `xfeat init zsh` or `xfeat init bash`) provides tab completion for commands and arguments
