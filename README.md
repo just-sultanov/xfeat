@@ -2,6 +2,8 @@
 
 CLI utility for managing git worktrees across multiple repositories.
 
+> **⚠️ Alpha:** This project is under active development. APIs and behavior may change.
+
 ## Rationale
 
 Why? I work on several large products simultaneously.
