@@ -112,7 +112,7 @@ Set up your project workspace and start developing features in parallel:
 │   ├── payment-service/
 │   ├── checkout-service/
 │   └── frontend/
-└── features/           # empty
+└── features/ # empty
 ```
 
 **1. Create a new feature and add worktrees:**
@@ -131,7 +131,7 @@ xf add checkout-v2 payment-service checkout-service
 └── features/
     └── checkout-v2/
         ├── payment-service/  # worktree on branch checkout-v2
-        └── checkout-service/     # worktree on branch checkout-v2
+        └── checkout-service/ # worktree on branch checkout-v2
 ```
 
 **2. Work on your feature** — each worktree is a fully independent git checkout:
@@ -156,8 +156,10 @@ xf list
 
 ```
 ├── checkout-v2
-│   ├── payment-service (checkout-v2)
-│   └── checkout-service (checkout-v2)
+│   ├── payment-service
+│   │   branch: checkout-v2
+│   └── checkout-service
+│       branch: checkout-v2
 └── payment-refactor (empty)
 ```
 
@@ -235,13 +237,18 @@ xf list
 
 ```
 ├── checkout-v2
-│   ├── payment-service (checkout-v2)
-│   └── checkout-service (checkout-v2)
+│   ├── payment-service
+│   │   branch: checkout-v2
+│   └── checkout-service
+│       branch: checkout-v2
 ├── payment-refactor
-│   └── payment-service (payment-refactor)
+│   └── payment-service
+│       branch: payment-refactor
 └── dashboard-redesign
-    ├── frontend (dashboard-redesign)
-    └── backend (dashboard-redesign)
+    ├── frontend
+    │   branch: dashboard-redesign
+    └── backend
+        branch: dashboard-redesign
 ```
 
 ## Commands
@@ -309,12 +316,12 @@ xf list --path
 ```
 ├── STORY-123-add-payment
 │   ├── payment-service
-│       branch: STORY-123-add-payment
+│   │   branch: STORY-123-add-payment
 │   └── checkout-service
-        branch: STORY-123-add-payment
+│       branch: STORY-123-add-payment
 ├── STORY-456-redesign-checkout
 │   └── frontend
-        branch: STORY-456-redesign-checkout
+│       branch: STORY-456-redesign-checkout
 └── STORY-789-empty (empty)
 ```
 
@@ -323,11 +330,11 @@ xf list --path
 ```
 ├── STORY-123-add-payment
 │   ├── payment-service
-│       branch: STORY-123-add-payment
-│       path: ~/workspace/features/STORY-123-add-payment/payment-service
+│   │   branch: STORY-123-add-payment
+│   │   path: ~/workspace/features/STORY-123-add-payment/payment-service
 │   └── checkout-service
-        branch: STORY-123-add-payment
-        path: ~/workspace/features/STORY-123-add-payment/checkout-service
+│       branch: STORY-123-add-payment
+│       path: ~/workspace/features/STORY-123-add-payment/checkout-service
 └── STORY-456-redesign-checkout
     └── frontend
         branch: feature/TASK-456-redesign-checkout

@@ -105,9 +105,12 @@ bin/
 
 ## Git Worktree Logic
 
-- `fn create_worktree(source_repo: &Path, worktree_path: &Path, branch: &str) -> Result<()>`
-- Execute `git worktree add <path> -b <branch>` via `std::process::Command`
-- Paths are resolved to absolute before calling git (fixes relative path issues)
+- `fn create_worktree(source_repo: &Path, worktree_path: &Path, from_branch: Option<&str>, branch_name: &str) -> Result<()>`
+- Runs `git worktree prune` first to clean up stale worktree entries
+- Executes `git worktree add <path> [-b <branch>]` via `std::process::Command`
+- If branch already exists locally, omits `-b` flag to avoid conflicts
+- Supports `from_branch` to create the worktree branch from a specific source branch
+- Paths are resolved to absolute before calling git
 - Validate that source is a git repository
 
 ## Testing
@@ -133,8 +136,8 @@ bin/
 
 ### Version Display
 
-- `--version` flag shows version from `Cargo.toml` (e.g., `0.1.0`)
-- `--help` shows full version string with git SHA and build date (e.g., `v0.1.0@abc1234 (2026-04-03)`)
+- `--version` flag shows version from `Cargo.toml` (e.g., `0.3.0`)
+- `--help` shows full version string with git SHA and build date (e.g., `v0.3.0@abc1234 (2026-04-07)`)
 - Version information generated at compile time via `build.rs`
 
 ### Release Process

@@ -74,9 +74,9 @@ Example output:
 ```
 ├── STORY-123-add-payment
 │   ├── payment-service
-│       branch: STORY-123-add-payment
+│   │   branch: STORY-123-add-payment
 │   └── checkout-service
-        branch: STORY-123-add-payment
+│       branch: STORY-123-add-payment
 ├── STORY-456-redesign-checkout
 │   └── frontend
         branch: STORY-456-redesign-checkout
@@ -88,8 +88,8 @@ With `--path`, worktree paths are also shown:
 ```
 ├── STORY-123-add-payment
 │   └── payment-service
-        branch: STORY-123-add-payment
-        path: ~/workspace/features/STORY-123-add-payment/payment-service
+│       branch: STORY-123-add-payment
+│       path: ~/workspace/features/STORY-123-add-payment/payment-service
 └── STORY-456-redesign-checkout
     └── frontend
         branch: feature/TASK-456-redesign-checkout
