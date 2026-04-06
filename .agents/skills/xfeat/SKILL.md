@@ -136,7 +136,7 @@ Shows a summary of what will be removed, including warnings about uncommitted ch
 
    ```bash
    xf new checkout-v2
-   xf add checkout-v2 payment-service checkout-api
+   xf add checkout-v2 payment-service checkout-service
    ```
 
 2. **Work on the feature:**
@@ -170,7 +170,7 @@ xf add ai-payment-fix payment-service --from develop
 
 # Terminal 2 — working on checkout redesign
 xf new ai-checkout-v3
-xf add ai-checkout-v3 checkout-api frontend --from develop
+xf add ai-checkout-v3 checkout-service frontend --from develop
 ```
 
 Both agents work independently on their own branches. Before merging, sync each feature:

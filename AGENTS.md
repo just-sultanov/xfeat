@@ -108,7 +108,7 @@ eval "$(xfeat init zsh)"
 ```bash
 # 1. Create a feature and add worktrees
 xf new checkout-v2
-xf add checkout-v2 payment-service checkout-api
+xf add checkout-v2 payment-service checkout-service
 
 # 2. Work on the feature
 cd "$XF_FEATURES_DIR/checkout-v2"
@@ -148,7 +148,7 @@ xf add ai-payment-fix payment-service --from develop
 
 # Terminal 2
 xf new ai-checkout-v3
-xf add ai-checkout-v3 checkout-api frontend --from develop
+xf add ai-checkout-v3 checkout-service frontend --from develop
 ```
 
 Both agents work independently. Sync before merging:

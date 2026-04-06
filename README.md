@@ -110,7 +110,7 @@ Set up your project workspace and start developing features in parallel:
 ~/projects/store/
 ├── repos/
 │   ├── payment-service/
-│   ├── checkout-api/
+│   ├── checkout-service/
 │   └── frontend/
 └── features/           # empty
 ```
@@ -119,19 +119,19 @@ Set up your project workspace and start developing features in parallel:
 
 ```bash
 xf new checkout-v2
-xf add checkout-v2 payment-service checkout-api
+xf add checkout-v2 payment-service checkout-service
 ```
 
 ```
 ~/projects/store/
 ├── repos/
 │   ├── payment-service/
-│   ├── checkout-api/
+│   ├── checkout-service/
 │   └── frontend/
 └── features/
     └── checkout-v2/
         ├── payment-service/  # worktree on branch checkout-v2
-        └── checkout-api/     # worktree on branch checkout-v2
+        └── checkout-service/     # worktree on branch checkout-v2
 ```
 
 **2. Work on your feature** — each worktree is a fully independent git checkout:
@@ -157,7 +157,7 @@ xf list
 ```
 ├── checkout-v2
 │   ├── payment-service (checkout-v2)
-│   └── checkout-api (checkout-v2)
+│   └── checkout-service (checkout-v2)
 └── payment-refactor (empty)
 ```
 
@@ -181,7 +181,7 @@ xf new ai-payment-fix
 xf add ai-payment-fix payment-service --from develop
 
 xf new ai-checkout-v3
-xf add ai-checkout-v3 checkout-api frontend --from develop
+xf add ai-checkout-v3 checkout-service frontend --from develop
 ```
 
 Now launch AI agents in separate terminals:
@@ -194,7 +194,7 @@ claude
 
 # Terminal 2 — Codex working on checkout redesign
 cd "$XF_FEATURES_DIR/ai-checkout-v3"
-cd checkout-api
+cd checkout-service
 codex
 ```
 
@@ -216,7 +216,7 @@ export XF_REPOS_DIR=~/projects/store/repos
 export XF_FEATURES_DIR=~/projects/store/features
 
 xf new checkout-v2
-xf add checkout-v2 payment-service checkout-api
+xf add checkout-v2 payment-service checkout-service
 
 # Project B — analytics dashboard
 cd ~/projects/analytics
@@ -236,7 +236,7 @@ xf list
 ```
 ├── checkout-v2
 │   ├── payment-service (checkout-v2)
-│   └── checkout-api (checkout-v2)
+│   └── checkout-service (checkout-v2)
 ├── payment-refactor
 │   └── payment-service (payment-refactor)
 └── dashboard-redesign
