@@ -28,7 +28,7 @@ Adds worktrees for specified repositories to an existing feature. Supports `--fr
 
 ### `xfeat list`
 
-Lists all features with their worktrees and current branch names in a tree-like format. Empty features (no worktrees) are shown with an `(empty)` marker.
+Lists all features with their worktrees and current branch names in a tree-like format. Empty features (no worktrees) are shown with an `(empty)` marker. Supports `--branch` and `--path` flags to show details on separate lines.
 
 ### `xfeat remove <feature-name>`
 

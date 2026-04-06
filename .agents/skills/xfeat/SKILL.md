@@ -35,7 +35,7 @@ I teach you how to use `xfeat` (aliased as `xf`) — a CLI utility for managing 
 Create a new empty feature directory:
 
 ```bash
-xf new JIRA-123-fix-issue
+xf new STORY-123-add-payment
 ```
 
 This creates an empty directory under `$XF_FEATURES_DIR/<feature-name>/`. Add worktrees with `xf add`.
@@ -46,16 +46,16 @@ Add git worktrees for repositories to an existing feature:
 
 ```bash
 # Add repos — branches named after the feature
-xf add JIRA-123 payment-service checkout-api
+xf add STORY-123-add-payment payment-service checkout-service
 
 # Add repos, branching from a specific source branch
-xf add JIRA-123 payment-service --from develop
+xf add STORY-123-add-payment payment-service --from develop
 
 # Add repos with a custom branch name
-xf add JIRA-123 payment-service --branch bugfix/JIRA-123
+xf add STORY-123-add-payment payment-service --branch feature/TASK-123-add-payment
 
 # Combine: branch from 'develop' with a custom name
-xf add JIRA-123 payment-service --from develop --branch bugfix/JIRA-123
+xf add STORY-123-add-payment payment-service --from develop --branch feature/TASK-123-add-payment
 ```
 
 Skips repositories that already have worktrees in the feature.
@@ -66,17 +66,33 @@ List all features with their worktrees and current branches:
 
 ```bash
 xf list
+xf list --branch
+xf list --path
+xf list --branch --path
 ```
 
 Example output:
 
 ```
-├── JIRA-123
-│   ├── service-1 (JIRA-123)
-│   └── service-2 (JIRA-123)
-├── JIRA-456
-│   └── service-1 (JIRA-456)
-└── JIRA-789 (empty)
+├── STORY-123-add-payment
+│   ├── payment-service (STORY-123-add-payment)
+│   └── checkout-service (STORY-123-add-payment)
+├── STORY-456-redesign-checkout
+│   └── frontend (STORY-456-redesign-checkout)
+└── STORY-789-empty (empty)
+```
+
+With `--branch`, `--path`, or both, details are shown on separate lines:
+
+```
+├── STORY-123-add-payment
+│   └── payment-service
+        branch: STORY-123-add-payment
+        path: ~/workspace/features/STORY-123-add-payment/payment-service
+└── STORY-456-redesign-checkout
+    └── frontend
+        branch: feature/TASK-456-redesign-checkout
+        path: ~/workspace/features/STORY-456-redesign-checkout/frontend
 ```
 
 Empty features (created with `xf new` but without worktrees yet) are shown with `(empty)`.
@@ -86,7 +102,7 @@ Empty features (created with `xf new` but without worktrees yet) are shown with 
 Sync a feature with the latest main branch from source repos:
 
 ```bash
-xf sync JIRA-123-fix-issue
+xf sync STORY-123-add-payment
 ```
 
 For each worktree in the feature:
@@ -98,9 +114,9 @@ For each worktree in the feature:
 Typical workflow before merging:
 
 ```bash
-xf sync JIRA-123-fix-issue   # rebase onto latest main
+xf sync STORY-123-add-payment   # rebase onto latest main
 # resolve any conflicts if needed
-xf sync JIRA-123-fix-issue   # verify clean sync
+xf sync STORY-123-add-payment   # verify clean sync
 ```
 
 ### `xf remove <feature-name>`
@@ -108,19 +124,8 @@ xf sync JIRA-123-fix-issue   # verify clean sync
 Remove a feature and its worktrees. Prompts for confirmation by default:
 
 ```bash
-xf remove JIRA-123-fix-issue
-xf remove JIRA-123-fix-issue --yes   # skip confirmation (for scripts)
-```
-
-Shows a summary of what will be removed, including warnings about uncommitted changes.
-
-### `xf remove <feature-name>`
-
-Remove a feature and its worktrees. Prompts for confirmation by default:
-
-```bash
-xf remove JIRA-123-fix-issue
-xf remove JIRA-123-fix-issue --yes   # skip confirmation (for scripts)
+xf remove STORY-123-add-payment
+xf remove STORY-123-add-payment --yes   # skip confirmation (for scripts)
 ```
 
 Shows a summary of what will be removed, including warnings about uncommitted changes.

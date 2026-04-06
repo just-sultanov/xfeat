@@ -257,13 +257,13 @@ xf new <feature-name>
 **Example:**
 
 ```bash
-xf new JIRA-123-fix-issue
+xf new STORY-123-add-payment
 ```
 
 This creates an empty directory. Add worktrees with `xf add`:
 
 ```bash
-xf add JIRA-123-fix-issue service-1 service-2 lib-1
+xf add STORY-123-add-payment payment-service checkout-service frontend
 ```
 
 ### `xfeat add`
@@ -281,16 +281,16 @@ xf add <feature-name> <repos...> --from <branch> --branch <branch-name>
 
 ```bash
 # Add repos — branches named after the feature
-xf add JIRA-123 payment-service checkout-api
+xf add STORY-123-add-payment payment-service checkout-service
 
 # Add repos, branching from a specific source branch
-xf add JIRA-123 payment-service --from develop
+xf add STORY-123-add-payment payment-service --from develop
 
 # Add repos with a custom branch name
-xf add JIRA-123 payment-service --branch bugfix/JIRA-123
+xf add STORY-123-add-payment payment-service --branch feature/TASK-123-add-payment
 
 # Combine: branch from 'develop' with a custom name
-xf add JIRA-123 payment-service --from develop --branch bugfix/JIRA-123
+xf add STORY-123-add-payment payment-service --from develop --branch feature/TASK-123-add-payment
 ```
 
 Skips repositories that already have worktrees in the feature.
@@ -301,17 +301,55 @@ List all features with their worktrees and current branches:
 
 ```bash
 xf list
+xf list --branch
+xf list --path
+xf list --branch --path
 ```
 
-**Example output:**
+**Default output:**
 
 ```
-├── JIRA-123
-│   ├── service-1 (JIRA-123)
-│   └── service-2 (JIRA-123)
-├── JIRA-456
-│   └── service-1 (JIRA-456)
-└── JIRA-789 (empty)
+├── STORY-123-add-payment
+│   ├── payment-service (STORY-123-add-payment)
+│   └── checkout-service (STORY-123-add-payment)
+├── STORY-456-redesign-checkout
+│   └── frontend (STORY-456-redesign-checkout)
+└── STORY-789-empty (empty)
+```
+
+**With `--branch`:**
+
+```
+├── STORY-123-add-payment
+│   └── payment-service
+        branch: STORY-123-add-payment
+└── STORY-456-redesign-checkout
+    └── frontend
+        branch: feature/TASK-456-redesign-checkout
+```
+
+**With `--path`:**
+
+```
+├── STORY-123-add-payment
+│   └── payment-service
+        path: ~/workspace/features/STORY-123-add-payment/payment-service
+└── STORY-456-redesign-checkout
+    └── frontend
+        path: ~/workspace/features/STORY-456-redesign-checkout/frontend
+```
+
+**With `--branch --path`:**
+
+```
+├── STORY-123-add-payment
+│   └── payment-service
+        branch: STORY-123-add-payment
+        path: ~/workspace/features/STORY-123-add-payment/payment-service
+└── STORY-456-redesign-checkout
+    └── frontend
+        branch: feature/TASK-456-redesign-checkout
+        path: ~/workspace/features/STORY-456-redesign-checkout/frontend
 ```
 
 Empty features (created with `xf new` but without worktrees yet) are shown with `(empty)`.
@@ -333,15 +371,15 @@ For each worktree in the feature:
 **Example:**
 
 ```bash
-xf sync JIRA-123-fix-issue
+xf sync STORY-123-add-payment
 ```
 
 **Typical workflow before merging:**
 
 ```bash
-xf sync JIRA-123-fix-issue   # rebase onto latest main
+xf sync STORY-123-add-payment   # rebase onto latest main
 # resolve any conflicts if needed
-xf sync JIRA-123-fix-issue   # verify clean sync
+xf sync STORY-123-add-payment   # verify clean sync
 # merge or create PR
 ```
 
@@ -357,12 +395,12 @@ xf remove <feature-name> --yes   # skip confirmation (for scripts)
 **Example output:**
 
 ```
-Feature 'JIRA-123' contains:
-  - service-1 (JIRA-123)
-  - service-2 (JIRA-123) ⚠ has uncommitted changes
+Feature 'STORY-123-add-payment' contains:
+  - payment-service (STORY-123-add-payment)
+  - checkout-service (STORY-123-add-payment) ⚠ has uncommitted changes
 
-Remove feature 'JIRA-123'? [y/N] y
-Feature 'JIRA-123' removed.
+Remove feature 'STORY-123-add-payment'? [y/N] y
+Feature 'STORY-123-add-payment' removed.
 ```
 
 ### `xfeat init`
