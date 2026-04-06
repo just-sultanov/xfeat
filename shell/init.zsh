@@ -11,16 +11,6 @@ xf() {
     new)
       xfeat new "$@"
       ;;
-    switch)
-      local feature="$1"
-      local features_dir="${XF_FEATURES_DIR/#\~/$HOME}"
-      local target_dir="${features_dir%/}/$feature"
-      if [[ ! -d "$target_dir" ]]; then
-        echo "feature '$feature' not found"
-        return 1
-      fi
-      cd "$target_dir"
-      ;;
     remove)
       local feature="$1"
       shift
@@ -48,14 +38,14 @@ _xfeat_complete() {
   local repos_dir="${XF_REPOS_DIR/#\~/$HOME}"
   local features_dir="${XF_FEATURES_DIR/#\~/$HOME}"
 
-  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main" "switch:switch to a feature" "add:add worktrees to an existing feature")
+  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main" "add:add worktrees to an existing feature")
 
   if [ $CURRENT -eq 2 ]; then
     _describe 'command' commands
   elif [ $CURRENT -gt 2 ]; then
     local cmd="${words[2]}"
     case "$cmd" in
-      remove|sync|switch)
+      remove|sync)
         if [[ -d "$features_dir" ]]; then
           features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")
           if (( ${#features} > 0 )); then

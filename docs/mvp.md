@@ -47,9 +47,8 @@ Generates shell initialization code for `eval`. Currently supports `zsh`.
 
 The generated code provides:
 - `xf` wrapper function that proxies to `xfeat`
-- `xf switch <feature>` — `cd` into a feature directory
 - Tab completion for repository names (`xf new <TAB>`, `xf add <TAB>`) with automatic filtering of already-specified repos
-- Tab completion for feature names (`xf add <TAB>` first arg, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+- Tab completion for feature names (`xf add <TAB>` first arg, `xf remove <TAB>`, `xf sync <TAB>`)
 - Autocomplete for `xf add` shows features for the first arg, repos (excluding already-added ones) for subsequent args
 - Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
 - Automatically expands `~` in path variables
@@ -123,13 +122,12 @@ bin/
 - Zsh script stored in `shell/init.zsh`, embedded into the binary at compile time:
   - `xf new <feature>` — creates an empty feature directory
   - `xf add <feature> <repos...>` — adds worktrees to a feature (supports `--from` and `--branch`)
-  - `xf switch <feature>` — `cd` into the feature directory (errors if not found)
   - `xf remove` — `cd` out if currently in the feature directory (with confirmation prompt)
   - `xf sync` — syncs feature with latest main
   - Other commands — proxy to `xfeat`
   - Autocompletion for repository names (`xf new <TAB>`, `xf add <TAB>`) with automatic filtering of already-specified repos
   - Autocomplete for `xf add` shows features for the first arg, repos (excluding already-added ones) for subsequent args
-  - Autocompletion for feature names (`xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+  - Autocompletion for feature names (`xf remove <TAB>`, `xf sync <TAB>`)
   - Reads `XF_REPOS_DIR` / `XF_FEATURES_DIR` directly from the environment on each invocation (compatible with `direnv`)
   - Automatically expands `~` in path variables
 

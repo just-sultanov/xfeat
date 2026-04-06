@@ -135,7 +135,7 @@ xf add checkout-v2 payment-service checkout-api
 **2. Work on your feature** — each worktree is a fully independent git checkout:
 
 ```bash
-xf switch checkout-v2
+cd "$XF_FEATURES_DIR/checkout-v2"
 cd payment-service
 # make changes, commit, push — no stashing, no branch switching
 ```
@@ -186,12 +186,12 @@ Now launch AI agents in separate terminals:
 
 ```bash
 # Terminal 1 — Claude Code working on payment fix
-xf switch ai-payment-fix
+cd "$XF_FEATURES_DIR/ai-payment-fix"
 cd payment-service
 claude
 
 # Terminal 2 — Codex working on checkout redesign
-xf switch ai-checkout-v3
+cd "$XF_FEATURES_DIR/ai-checkout-v3"
 cd checkout-api
 codex
 ```
@@ -223,16 +223,6 @@ export XF_FEATURES_DIR=~/projects/analytics/features
 
 xf new dashboard-redesign
 xf add dashboard-redesign frontend backend
-```
-
-Use `xf switch` to jump between features instantly:
-
-```bash
-xf switch checkout-v2        # cd to features/checkout-v2
-# work on checkout...
-
-xf switch dashboard-redesign # cd to features/dashboard-redesign (in analytics project)
-# work on dashboard...
 ```
 
 View everything at a glance:
@@ -387,11 +377,10 @@ The `xf` wrapper:
 
 - `xf new <feature>` — creates an empty feature directory
 - `xf add <feature> <repos...>` — adds worktrees to a feature
-- `xf switch <feature>` — `cd` into a feature directory
 - `xf remove <feature>` — removes feature (with confirmation) and `cd`s out if needed
 - `xf sync <feature>` — syncs feature with main
 - `xf list` and other commands — proxied to `xfeat`
-- Tab completion for repository names (`xf add <TAB>`), feature names (`xf new <TAB>`, `xf remove <TAB>`, `xf sync <TAB>`, `xf switch <TAB>`)
+- Tab completion for repository names (`xf add <TAB>`), feature names (`xf new <TAB>`, `xf remove <TAB>`, `xf sync <TAB>`)
 
 Shell scripts are stored in `shell/` and embedded into the binary at compile time. They read `XF_REPOS_DIR` and `XF_FEATURES_DIR` from the environment on each invocation, making them compatible with tools like `direnv`. Tilde (`~`) in paths is expanded automatically.
 

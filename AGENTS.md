@@ -110,8 +110,8 @@ eval "$(xfeat init zsh)"
 xf new checkout-v2
 xf add checkout-v2 payment-service checkout-api
 
-# 2. Switch to the feature and work
-xf switch checkout-v2
+# 2. Work on the feature
+cd "$XF_FEATURES_DIR/checkout-v2"
 cd payment-service
 # make changes, commit, push
 
@@ -134,7 +134,6 @@ xf remove checkout-v2
 | `xf sync <feature>`                           | Rebase feature onto latest origin/main               |
 | `xf remove <feature>`                         | Remove feature and its worktrees (with confirmation) |
 | `xf remove <feature> --yes`                   | Remove without confirmation                          |
-| `xf switch <feature>`                         | cd into feature directory (shell wrapper)            |
 
 ### AI-assisted development
 
@@ -144,12 +143,10 @@ Run multiple AI coding agents on different features simultaneously — each gets
 # Terminal 1
 xf new ai-payment-fix
 xf add ai-payment-fix payment-service --from develop
-xf switch ai-payment-fix
 
 # Terminal 2
 xf new ai-checkout-v3
 xf add ai-checkout-v3 checkout-api frontend --from develop
-xf switch ai-checkout-v3
 ```
 
 Both agents work independently. Sync before merging:
@@ -166,4 +163,4 @@ xf sync ai-checkout-v3
 - Branch names default to the feature name unless `--branch` is specified
 - `--from` specifies the source branch to create the feature branch from
 - Always run `xf sync` before merging to ensure the feature is up to date
-- The `xf` shell wrapper (from `xfeat init zsh`) provides `xf switch` and tab completion
+- The `xf` shell wrapper (from `xfeat init zsh`) provides tab completion for commands and arguments

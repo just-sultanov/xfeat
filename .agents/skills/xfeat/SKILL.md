@@ -1,6 +1,6 @@
 ---
 name: xfeat
-description: Use the xfeat CLI to manage git worktrees across multiple repositories — create features, add worktrees, sync with main, and switch between feature workspaces
+description: Use the xfeat CLI to manage git worktrees across multiple repositories — create features, add worktrees, and sync with main
 license: MIT
 metadata:
   audience: developers
@@ -114,15 +114,16 @@ xf remove JIRA-123-fix-issue --yes   # skip confirmation (for scripts)
 
 Shows a summary of what will be removed, including warnings about uncommitted changes.
 
-### `xf switch <feature-name>`
+### `xf remove <feature-name>`
 
-Switch to a feature directory (shell wrapper function):
+Remove a feature and its worktrees. Prompts for confirmation by default:
 
 ```bash
-xf switch JIRA-123-fix-issue   # cd into the feature directory
+xf remove JIRA-123-fix-issue
+xf remove JIRA-123-fix-issue --yes   # skip confirmation (for scripts)
 ```
 
-This is provided by the shell initialization (`eval "$(xfeat init zsh)"`), not the binary directly.
+Shows a summary of what will be removed, including warnings about uncommitted changes.
 
 ## Typical workflow
 
@@ -133,10 +134,10 @@ This is provided by the shell initialization (`eval "$(xfeat init zsh)"`), not t
    xf add checkout-v2 payment-service checkout-api
    ```
 
-2. **Switch to the feature and work:**
+2. **Work on the feature:**
 
    ```bash
-   xf switch checkout-v2
+   cd "$XF_FEATURES_DIR/checkout-v2"
    cd payment-service
    # make changes, commit, push
    ```
@@ -161,12 +162,10 @@ Run multiple AI coding agents on different features simultaneously — each agen
 # Terminal 1 — working on payment fix
 xf new ai-payment-fix
 xf add ai-payment-fix payment-service --from develop
-xf switch ai-payment-fix
 
 # Terminal 2 — working on checkout redesign
 xf new ai-checkout-v3
 xf add ai-checkout-v3 checkout-api frontend --from develop
-xf switch ai-checkout-v3
 ```
 
 Both agents work independently on their own branches. Before merging, sync each feature:
@@ -183,4 +182,4 @@ xf sync ai-checkout-v3
 - Branch names default to the feature name unless `--branch` is specified
 - `--from` specifies the source branch to create the feature branch from
 - Always run `xf sync` before merging to ensure the feature is up to date
-- The `xf` shell wrapper (from `xfeat init zsh`) provides `xf switch` and tab completion
+- The `xf` shell wrapper (from `xfeat init zsh`) provides tab completion for commands and arguments
