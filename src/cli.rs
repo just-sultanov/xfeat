@@ -35,7 +35,15 @@ pub enum Commands {
     },
 
     /// List all features with their worktrees
-    List,
+    List {
+        /// Show branch information
+        #[arg(long)]
+        branch: bool,
+
+        /// Show path information
+        #[arg(long)]
+        path: bool,
+    },
 
     /// Remove a feature and its worktrees
     Remove {
