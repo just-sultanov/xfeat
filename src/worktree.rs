@@ -17,6 +17,10 @@ pub fn create_worktree(
         return Err(Error::WorktreeExists(worktree_path.to_path_buf()));
     }
 
+    let _ = Command::new("git")
+        .args(["-C", source_repo.to_str().unwrap(), "worktree", "prune"])
+        .output();
+
     let mut args = vec![
         "-C",
         source_repo.to_str().unwrap(),
@@ -29,7 +33,11 @@ pub fn create_worktree(
         args.push(from);
     }
 
-    args.push("-b");
+    let branch_exists_locally = branch_exists(source_repo, branch_name);
+
+    if !branch_exists_locally {
+        args.push("-b");
+    }
     args.push(branch_name);
 
     let output = Command::new("git")
@@ -199,4 +207,112 @@ pub fn rebase_worktree(worktree_path: &Path, main_branch: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+
+    struct TestRepo {
+        tmp: PathBuf,
+        repo_path: PathBuf,
+    }
+
+    impl TestRepo {
+        fn new() -> Self {
+            let unique = format!(
+                "xfeat-wt-test-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            );
+            let tmp = std::env::temp_dir().join(unique);
+            let repo_path = tmp.join("source-repo");
+
+            fs::create_dir_all(&repo_path).unwrap();
+
+            Command::new("git")
+                .args(["init", repo_path.to_str().unwrap()])
+                .status()
+                .expect("failed to init git repo");
+
+            fs::write(repo_path.join("README.md"), "initial").unwrap();
+
+            Command::new("git")
+                .args(["-C", repo_path.to_str().unwrap(), "add", "."])
+                .status()
+                .expect("failed to add files");
+
+            Command::new("git")
+                .args([
+                    "-C",
+                    repo_path.to_str().unwrap(),
+                    "commit",
+                    "-m",
+                    "initial commit",
+                ])
+                .status()
+                .expect("failed to commit");
+
+            Self { tmp, repo_path }
+        }
+    }
+
+    impl Drop for TestRepo {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.tmp);
+        }
+    }
+
+    #[test]
+    fn test_create_worktree_after_stale_worktree() {
+        let test_repo = TestRepo::new();
+        let worktree_path = test_repo.tmp.join("features").join("stale-test");
+
+        fs::create_dir_all(worktree_path.parent().unwrap()).unwrap();
+
+        let status = Command::new("git")
+            .args([
+                "-C",
+                test_repo.repo_path.to_str().unwrap(),
+                "worktree",
+                "add",
+                worktree_path.to_str().unwrap(),
+                "-b",
+                "stale-test",
+            ])
+            .status()
+            .expect("failed to create initial worktree");
+        assert!(status.success(), "initial worktree creation failed");
+
+        fs::remove_dir_all(&worktree_path).unwrap();
+
+        let worktree_list = Command::new("git")
+            .args([
+                "-C",
+                test_repo.repo_path.to_str().unwrap(),
+                "worktree",
+                "list",
+                "--porcelain",
+            ])
+            .output()
+            .expect("failed to list worktrees");
+        let output = String::from_utf8_lossy(&worktree_list.stdout);
+        assert!(
+            output.contains("stale-test"),
+            "worktree should be registered as stale before prune"
+        );
+
+        let result = create_worktree(&test_repo.repo_path, &worktree_path, None, "stale-test");
+        assert!(
+            result.is_ok(),
+            "create_worktree should succeed after stale worktree, got: {:?}",
+            result.err()
+        );
+        assert!(worktree_path.exists(), "worktree directory should exist");
+    }
 }
