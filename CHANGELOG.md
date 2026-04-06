@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.0 - 2026-04-07
+
+### Added
+
+- `xf list --path` — show worktree paths alongside branch information
+- `xf add --from <branch> --branch <name>` — combine source branch with custom branch name
+- Alpha status warning in README
+
+### Changed
+
+- `xf list` now always shows branch information in expanded tree format (no longer compact `repo (branch)` format)
+- Removed `xf switch` command — users should use `cd "$XF_FEATURES_DIR/<feature>"` instead
+- Repository naming convention in documentation updated to story-based examples (e.g., `STORY-123-add-payment`)
+- Repository names in examples updated to realistic names (`payment-service`, `checkout-service`, `frontend`)
+
+### Fixed
+
+- Stale worktrees are now automatically pruned before creating new ones, preventing "missing but already registered worktree" errors
+- Tree structure lines in `xf list` output are now properly aligned for nested features
+
+### Removed
+
+- `xf switch` command and its autocomplete entry (use `cd` directly)
+
 ## 0.2.0 - 2026-04-03
 
 ### Added
