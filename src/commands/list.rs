@@ -60,11 +60,11 @@ pub fn run(config: &Config, show_path: bool) -> anyhow::Result<()> {
                 };
 
                 println!("{child_prefix}{repo_connector}{repo}");
-                let detail_prefix = if is_last_repo {
-                    "        "
-                } else {
-                    "│       "
-                };
+                let detail_prefix = format!(
+                    "{}{}",
+                    child_prefix,
+                    if is_last_repo { "    " } else { "│   " }
+                );
 
                 println!("{detail_prefix}branch: {branch}");
 
