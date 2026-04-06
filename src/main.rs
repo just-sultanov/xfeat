@@ -16,8 +16,8 @@ fn main() -> Result<()> {
         cli::Commands::New { feature_name } => {
             commands::new::run(&feature_name, &config)?;
         }
-        cli::Commands::List { branch, path } => {
-            commands::list::run(&config, branch, path)?;
+        cli::Commands::List { path } => {
+            commands::list::run(&config, path)?;
         }
         cli::Commands::Remove { feature_name, yes } => {
             commands::remove::run(&feature_name, yes, &config)?;

@@ -66,23 +66,24 @@ List all features with their worktrees and current branches:
 
 ```bash
 xf list
-xf list --branch
 xf list --path
-xf list --branch --path
 ```
 
 Example output:
 
 ```
 ├── STORY-123-add-payment
-│   ├── payment-service (STORY-123-add-payment)
-│   └── checkout-service (STORY-123-add-payment)
+│   ├── payment-service
+│       branch: STORY-123-add-payment
+│   └── checkout-service
+        branch: STORY-123-add-payment
 ├── STORY-456-redesign-checkout
-│   └── frontend (STORY-456-redesign-checkout)
+│   └── frontend
+        branch: STORY-456-redesign-checkout
 └── STORY-789-empty (empty)
 ```
 
-With `--branch`, `--path`, or both, details are shown on separate lines:
+With `--path`, worktree paths are also shown:
 
 ```
 ├── STORY-123-add-payment

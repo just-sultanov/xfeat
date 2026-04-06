@@ -301,51 +301,33 @@ List all features with their worktrees and current branches:
 
 ```bash
 xf list
-xf list --branch
 xf list --path
-xf list --branch --path
 ```
 
 **Default output:**
 
 ```
 ├── STORY-123-add-payment
-│   ├── payment-service (STORY-123-add-payment)
-│   └── checkout-service (STORY-123-add-payment)
-├── STORY-456-redesign-checkout
-│   └── frontend (STORY-456-redesign-checkout)
-└── STORY-789-empty (empty)
-```
-
-**With `--branch`:**
-
-```
-├── STORY-123-add-payment
-│   └── payment-service
+│   ├── payment-service
+│       branch: STORY-123-add-payment
+│   └── checkout-service
         branch: STORY-123-add-payment
-└── STORY-456-redesign-checkout
-    └── frontend
-        branch: feature/TASK-456-redesign-checkout
+├── STORY-456-redesign-checkout
+│   └── frontend
+        branch: STORY-456-redesign-checkout
+└── STORY-789-empty (empty)
 ```
 
 **With `--path`:**
 
 ```
 ├── STORY-123-add-payment
-│   └── payment-service
-        path: ~/workspace/features/STORY-123-add-payment/payment-service
-└── STORY-456-redesign-checkout
-    └── frontend
-        path: ~/workspace/features/STORY-456-redesign-checkout/frontend
-```
-
-**With `--branch --path`:**
-
-```
-├── STORY-123-add-payment
-│   └── payment-service
+│   ├── payment-service
+│       branch: STORY-123-add-payment
+│       path: ~/workspace/features/STORY-123-add-payment/payment-service
+│   └── checkout-service
         branch: STORY-123-add-payment
-        path: ~/workspace/features/STORY-123-add-payment/payment-service
+        path: ~/workspace/features/STORY-123-add-payment/checkout-service
 └── STORY-456-redesign-checkout
     └── frontend
         branch: feature/TASK-456-redesign-checkout

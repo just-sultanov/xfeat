@@ -4,7 +4,7 @@ use std::process::Command;
 
 use crate::config::Config;
 
-pub fn run(config: &Config, show_branch: bool, show_path: bool) -> anyhow::Result<()> {
+pub fn run(config: &Config, show_path: bool) -> anyhow::Result<()> {
     if !config.features_dir.exists() {
         println!("No features found");
         return Ok(());
@@ -32,7 +32,7 @@ pub fn run(config: &Config, show_branch: bool, show_path: bool) -> anyhow::Resul
         return Ok(());
     }
 
-    let show_details = show_branch || show_path;
+    let show_path_only = show_path;
 
     for (i, (feature_name, worktrees)) in features.iter().enumerate() {
         let is_last_feature = i == features.len() - 1;
@@ -59,26 +59,20 @@ pub fn run(config: &Config, show_branch: bool, show_path: bool) -> anyhow::Resul
                     "├── "
                 };
 
-                if show_details {
-                    println!("{child_prefix}{repo_connector}{repo}");
-                    let detail_prefix = if is_last_repo {
-                        "        "
-                    } else {
-                        "│       "
-                    };
-
-                    if show_branch {
-                        println!("{detail_prefix}branch: {branch}");
-                    }
-
-                    if show_path {
-                        let worktree_path = config.features_dir.join(feature_name).join(repo);
-                        let display_path =
-                            shellexpand::tilde(&worktree_path.to_string_lossy()).to_string();
-                        println!("{detail_prefix}path: {display_path}");
-                    }
+                println!("{child_prefix}{repo_connector}{repo}");
+                let detail_prefix = if is_last_repo {
+                    "        "
                 } else {
-                    println!("{child_prefix}{repo_connector}{repo} ({branch})");
+                    "│       "
+                };
+
+                println!("{detail_prefix}branch: {branch}");
+
+                if show_path_only {
+                    let worktree_path = config.features_dir.join(feature_name).join(repo);
+                    let display_path =
+                        shellexpand::tilde(&worktree_path.to_string_lossy()).to_string();
+                    println!("{detail_prefix}path: {display_path}");
                 }
             }
         }
@@ -205,7 +199,7 @@ mod tests {
     #[test]
     fn test_list_features_empty() {
         let env = TestEnv::new();
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
     }
 
     #[test]
@@ -214,7 +208,7 @@ mod tests {
         let repo_path = env.setup_repo("service-1");
         env.create_worktree("JIRA-123", "service-1", &repo_path);
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
 
         let feature_dir = env.config.features_dir.join("JIRA-123");
         assert!(feature_dir.exists());
@@ -246,7 +240,7 @@ mod tests {
         env.create_worktree("JIRA-123", "service-2", &repo2);
         env.create_worktree("JIRA-456", "service-1", &repo1);
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
 
         let feature_123 = env.config.features_dir.join("JIRA-123");
         let feature_456 = env.config.features_dir.join("JIRA-456");
@@ -267,7 +261,7 @@ mod tests {
         env.create_worktree("aaa-feature", "lib-1", &repo);
         env.create_worktree("mmm-feature", "lib-1", &repo);
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
 
         let entries: Vec<_> = fs::read_dir(&env.config.features_dir)
             .unwrap()
@@ -295,7 +289,7 @@ mod tests {
             features_dir: tmp.join("nonexistent-features"),
         };
 
-        run(&config, false, false).unwrap();
+        run(&config, false).unwrap();
     }
 
     #[test]
@@ -305,7 +299,7 @@ mod tests {
         let empty_feature_dir = env.config.features_dir.join("empty-feature");
         fs::create_dir_all(&empty_feature_dir).unwrap();
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
 
         let feature_dir = env.config.features_dir.join("empty-feature");
         assert!(feature_dir.exists());
@@ -321,7 +315,7 @@ mod tests {
         fs::create_dir_all(env.config.features_dir.join("empty-feature")).unwrap();
         env.create_worktree("JIRA-456", "service-1", &repo);
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
 
         assert!(env.config.features_dir.join("JIRA-123").exists());
         assert!(env.config.features_dir.join("empty-feature").exists());
@@ -336,7 +330,7 @@ mod tests {
         fs::create_dir_all(&not_a_worktree).unwrap();
         fs::create_dir_all(not_a_worktree.join("some-file.txt")).unwrap();
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
     }
 
     #[test]
@@ -350,7 +344,7 @@ mod tests {
         env.create_worktree("big-feature", "service-4", &repo);
         env.create_worktree("big-feature", "lib-1", &repo);
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
 
         let feature_dir = env.config.features_dir.join("big-feature");
         assert!(feature_dir.exists());
@@ -386,7 +380,7 @@ mod tests {
 
         env.create_worktree("feature/with-slashes", "lib-1", &repo);
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
     }
 
     #[test]
@@ -398,7 +392,7 @@ mod tests {
 
         env.create_worktree("valid-feature", "lib-1", &repo);
 
-        run(&env.config, false, false).unwrap();
+        run(&env.config, false).unwrap();
 
         let feature_dir = env.config.features_dir.join("valid-feature");
         assert!(feature_dir.exists());
@@ -451,32 +445,11 @@ mod tests {
     }
 
     #[test]
-    fn test_list_features_with_branch_flag() {
-        let env = TestEnv::new();
-        let repo_path = env.setup_repo("service-1");
-        env.create_worktree("JIRA-123", "service-1", &repo_path);
-
-        run(&env.config, true, false).unwrap();
-    }
-
-    #[test]
     fn test_list_features_with_path_flag() {
         let env = TestEnv::new();
         let repo_path = env.setup_repo("service-1");
         env.create_worktree("JIRA-123", "service-1", &repo_path);
 
-        run(&env.config, false, true).unwrap();
-    }
-
-    #[test]
-    fn test_list_features_with_both_flags() {
-        let env = TestEnv::new();
-        let repo1 = env.setup_repo("service-1");
-        let repo2 = env.setup_repo("service-2");
-
-        env.create_worktree("JIRA-123", "service-1", &repo1);
-        env.create_worktree("JIRA-123", "service-2", &repo2);
-
-        run(&env.config, true, true).unwrap();
+        run(&env.config, true).unwrap();
     }
 }

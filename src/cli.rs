@@ -36,10 +36,6 @@ pub enum Commands {
 
     /// List all features with their worktrees
     List {
-        /// Show branch information
-        #[arg(long)]
-        branch: bool,
-
         /// Show path information
         #[arg(long)]
         path: bool,
