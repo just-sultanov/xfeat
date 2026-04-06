@@ -7,6 +7,7 @@ static SHELL_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/shell");
 fn get_shell_init(shell: &Shell) -> &'static str {
     let filename = match shell {
         Shell::Zsh => "init.zsh",
+        Shell::Bash => "init.bash",
     };
 
     SHELL_DIR
@@ -89,6 +90,69 @@ mod tests {
         assert!(
             output.contains("XF_FEATURES_DIR"),
             "zsh init code should use XF_FEATURES_DIR variable"
+        );
+    }
+
+    fn bash_init() -> &'static str {
+        get_shell_init(&Shell::Bash)
+    }
+
+    #[test]
+    fn test_init_bash_outputs_code() {
+        let output = bash_init();
+        assert!(!output.is_empty(), "bash init code should not be empty");
+    }
+
+    #[test]
+    fn test_init_bash_contains_xf_function() {
+        assert!(
+            bash_init().contains("xf()"),
+            "bash init code should define xf function"
+        );
+    }
+
+    #[test]
+    fn test_init_bash_contains_completion() {
+        assert!(
+            bash_init().contains("complete -F _xfeat_complete xf"),
+            "bash init code should register completion"
+        );
+    }
+
+    #[test]
+    fn test_init_bash_handles_new_command() {
+        assert!(
+            bash_init().contains("xfeat new"),
+            "bash init code should handle new command"
+        );
+    }
+
+    #[test]
+    fn test_init_bash_handles_remove_command() {
+        assert!(
+            bash_init().contains("xfeat remove"),
+            "bash init code should handle remove command"
+        );
+    }
+
+    #[test]
+    fn test_init_bash_remove_does_not_force_yes() {
+        assert!(
+            !bash_init().contains("--yes"),
+            "bash init code should not pass --yes flag for remove (user should confirm)"
+        );
+    }
+
+    #[test]
+    fn test_init_bash_uses_env_variables() {
+        let output = bash_init();
+        assert!(
+            output.contains("XF_REPOS_DIR"),
+            "bash init code should use XF_REPOS_DIR variable"
+        );
+        assert!(
+            output.contains("XF_FEATURES_DIR"),
+            "bash init code should use XF_FEATURES_DIR variable"
         );
     }
 }

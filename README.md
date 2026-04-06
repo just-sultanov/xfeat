@@ -102,6 +102,14 @@ XF_REPOS_DIR = "~/projects/store/repos"
 XF_FEATURES_DIR = "~/projects/store/features"
 ```
 
+### Initialize shell integration
+
+Add to your `~/.zshrc` or `~/.bashrc`:
+
+```bash
+eval "$(xfeat init zsh)"   # or: eval "$(xfeat init bash)"
+```
+
 ### Create your first feature
 
 Set up your project workspace and start developing features in parallel:
@@ -397,10 +405,10 @@ Feature 'STORY-123-add-payment' removed.
 Generate shell initialization code with autocompletion and `xf` wrapper function:
 
 ```bash
-eval "$(xfeat init zsh)"
+eval "$(xfeat init zsh)"   # or: eval "$(xfeat init bash)"
 ```
 
-**Supported shells:** `zsh`
+**Supported shells:** `zsh`, `bash`
 
 The `xf` wrapper:
 

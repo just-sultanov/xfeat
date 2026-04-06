@@ -84,4 +84,5 @@ pub enum Commands {
 #[derive(ValueEnum, Clone, Debug)]
 pub enum Shell {
     Zsh,
+    Bash,
 }

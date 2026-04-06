@@ -28,6 +28,7 @@ src/
 
 - `build.rs` — injects version/git-sha/built-at via cargo env vars
 - `shell/init.zsh` — `xf` wrapper function + zsh tab completions
+- `shell/init.bash` — `xf` wrapper function + bash tab completions
 - `bin/` — development scripts (test, lint, build, dist, publish, install)
 - `install.sh` / `install.ps1` — standalone install scripts for end users
 - `mise.toml` — tool versions and task definitions
@@ -99,8 +100,8 @@ Paths are resolved: env vars expanded → tilde expanded → relative made absol
 export XF_REPOS_DIR=~/projects/store/repos
 export XF_FEATURES_DIR=~/projects/store/features
 
-# Initialize shell integration (add to ~/.zshrc)
-eval "$(xfeat init zsh)"
+# Initialize shell integration (add to ~/.zshrc or ~/.bashrc)
+eval "$(xfeat init zsh)"   # or: eval "$(xfeat init bash)"
 ```
 
 ### Typical workflow
@@ -165,4 +166,4 @@ xf sync ai-checkout-v3
 - Branch names default to the feature name unless `--branch` is specified
 - `--from` specifies the source branch to create the feature branch from
 - Always run `xf sync` before merging to ensure the feature is up to date
-- The `xf` shell wrapper (from `xfeat init zsh`) provides tab completion for commands and arguments
+- The `xf` shell wrapper (from `xfeat init zsh` or `xfeat init bash`) provides tab completion for commands and arguments
