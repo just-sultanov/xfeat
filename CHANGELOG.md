@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.3.1 - 2026-04-07
+
+### Added
+
+- `xfeat init bash` — bash shell support with `xf` wrapper function and tab completions
+- `shell/init.bash` — bash initialization script with completion for all commands
+
+### Changed
+
+- Updated documentation (README.md, AGENTS.md, SKILL.md) to reflect bash shell support
+- `xf` shell wrapper now available for both `zsh` and `bash`
+
 ## 0.3.0 - 2026-04-07
 
 ### Added
