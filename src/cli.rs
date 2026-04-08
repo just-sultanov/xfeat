@@ -55,6 +55,10 @@ pub enum Commands {
     Sync {
         /// Name of the feature to sync
         feature_name: String,
+
+        /// Branch to rebase onto (default: auto-detected from origin/HEAD)
+        #[arg(long)]
+        from: Option<String>,
     },
 
     /// Add worktrees for repos to an existing feature

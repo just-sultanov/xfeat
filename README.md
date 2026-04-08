@@ -357,6 +357,7 @@ Sync a feature with the latest main branch from source repos:
 
 ```bash
 xf sync <feature-name>
+xf sync <feature-name> --from <branch>
 ```
 
 For each worktree in the feature:

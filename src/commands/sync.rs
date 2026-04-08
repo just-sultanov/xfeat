@@ -4,7 +4,7 @@ use std::path::Path;
 use crate::config::Config;
 use crate::worktree;
 
-pub fn run(feature_name: &str, config: &Config) -> anyhow::Result<()> {
+pub fn run(feature_name: &str, config: &Config, from_branch: Option<&str>) -> anyhow::Result<()> {
     let feature_dir = config.features_dir.join(feature_name);
 
     if !feature_dir.exists() {
@@ -16,23 +16,17 @@ pub fn run(feature_name: &str, config: &Config) -> anyhow::Result<()> {
         anyhow::bail!("no worktrees found in feature '{feature_name}'");
     }
 
-    let mut main_branch = None;
-
     for (repo_name, worktree_path) in &worktrees {
-        let source_repo = find_source_repo(worktree_path)?;
-        let branch = worktree::get_default_branch(&source_repo);
-
-        if let Some(existing) = &main_branch {
-            if *existing != branch {
-                anyhow::bail!("inconsistent default branches detected: '{existing}' vs '{branch}'");
-            }
+        let branch = if let Some(from) = from_branch {
+            from.to_string()
         } else {
-            main_branch = Some(branch);
-        }
+            let source_repo = find_source_repo(worktree_path)?;
+            worktree::get_default_branch(&source_repo)
+        };
 
         println!("syncing {repo_name}...");
         worktree::fetch_worktree(worktree_path)?;
-        worktree::rebase_worktree(worktree_path, main_branch.as_ref().unwrap())?;
+        worktree::rebase_worktree(worktree_path, &branch)?;
         println!("  {repo_name} synced");
     }
 
@@ -189,6 +183,138 @@ mod tests {
             work_path
         }
 
+        fn setup_bare_repo_with_master(&self, name: &str) -> PathBuf {
+            let repo_path = self.config.repos_dir.join(name);
+            fs::create_dir_all(&repo_path).unwrap();
+
+            Command::new("git")
+                .args(["init", "--bare", repo_path.to_str().unwrap()])
+                .status()
+                .expect("failed to init bare repo");
+
+            Command::new("git")
+                .args([
+                    "-C",
+                    repo_path.to_str().unwrap(),
+                    "symbolic-ref",
+                    "HEAD",
+                    "refs/heads/master",
+                ])
+                .status()
+                .expect("failed to set HEAD to master");
+
+            let clone_path = self.tmp.join(format!("temp-clone-{}", name));
+            Command::new("git")
+                .args([
+                    "clone",
+                    repo_path.to_str().unwrap(),
+                    clone_path.to_str().unwrap(),
+                ])
+                .status()
+                .expect("failed to clone");
+
+            Command::new("git")
+                .args(["-C", clone_path.to_str().unwrap(), "branch", "-m", "master"])
+                .status()
+                .expect("failed to rename to master");
+
+            fs::write(clone_path.join("README.md"), "initial").unwrap();
+            Command::new("git")
+                .args(["-C", clone_path.to_str().unwrap(), "add", "."])
+                .status()
+                .expect("failed to add");
+            Command::new("git")
+                .args([
+                    "-C",
+                    clone_path.to_str().unwrap(),
+                    "commit",
+                    "-m",
+                    "initial commit",
+                ])
+                .status()
+                .expect("failed to commit");
+
+            Command::new("git")
+                .args([
+                    "-C",
+                    clone_path.to_str().unwrap(),
+                    "push",
+                    "-u",
+                    "origin",
+                    "master",
+                ])
+                .status()
+                .expect("failed to push");
+
+            Command::new("git")
+                .args([
+                    "-C",
+                    clone_path.to_str().unwrap(),
+                    "remote",
+                    "set-head",
+                    "origin",
+                    "master",
+                ])
+                .status()
+                .expect("failed to set origin/head");
+
+            let _ = fs::remove_dir_all(clone_path);
+
+            repo_path
+        }
+
+        fn setup_source_repo_with_master(&self, name: &str, bare_path: &Path) -> PathBuf {
+            let work_path = self.tmp.join(format!("source-master-{}", name));
+            fs::create_dir_all(&work_path).unwrap();
+
+            Command::new("git")
+                .args([
+                    "clone",
+                    bare_path.to_str().unwrap(),
+                    work_path.to_str().unwrap(),
+                ])
+                .status()
+                .expect("failed to clone");
+
+            Command::new("git")
+                .args(["-C", work_path.to_str().unwrap(), "checkout", "master"])
+                .status()
+                .expect("failed to checkout master");
+
+            let file_path = work_path.join("README.md");
+            fs::write(&file_path, "initial").unwrap();
+
+            Command::new("git")
+                .args(["-C", work_path.to_str().unwrap(), "add", "."])
+                .status()
+                .expect("failed to add");
+
+            Command::new("git")
+                .args([
+                    "-C",
+                    work_path.to_str().unwrap(),
+                    "commit",
+                    "-m",
+                    "initial commit on master",
+                ])
+                .status()
+                .expect("failed to commit");
+
+            Command::new("git")
+                .args([
+                    "-C",
+                    work_path.to_str().unwrap(),
+                    "push",
+                    "-u",
+                    "origin",
+                    "master",
+                ])
+                .status()
+                .expect("failed to push");
+
+            work_path
+        }
+
         fn create_worktree(&self, feature_name: &str, repo_name: &str, source_path: &Path) {
             let worktree_path = self.config.features_dir.join(feature_name).join(repo_name);
 
@@ -242,7 +368,7 @@ mod tests {
     #[test]
     fn test_sync_feature_not_found() {
         let env = TestEnv::new();
-        let result = run("nonexistent", &env.config);
+        let result = run("nonexistent", &env.config, None);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("not found"));
     }
@@ -253,7 +379,7 @@ mod tests {
         let feature_dir = env.config.features_dir.join("empty-feature");
         fs::create_dir_all(&feature_dir).unwrap();
 
-        let result = run("empty-feature", &env.config);
+        let result = run("empty-feature", &env.config, None);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("no worktrees"));
     }
@@ -267,7 +393,7 @@ mod tests {
         env.create_worktree("sync-test", "repo-1", &source);
         TestEnv::add_commit_to_main(&source);
 
-        let result = run("sync-test", &env.config);
+        let result = run("sync-test", &env.config, None);
         assert!(result.is_ok(), "sync failed: {:?}", result.err());
     }
 
@@ -287,7 +413,7 @@ mod tests {
         TestEnv::add_commit_to_main(&source1);
         TestEnv::add_commit_to_main(&source2);
 
-        let result = run("multi-sync", &env.config);
+        let result = run("multi-sync", &env.config, None);
         assert!(result.is_ok(), "sync failed: {:?}", result.err());
     }
 
@@ -300,7 +426,7 @@ mod tests {
         env.create_worktree("up-to-date", "repo-2", &source);
         TestEnv::add_commit_to_main(&source);
 
-        run("up-to-date", &env.config).unwrap();
+        run("up-to-date", &env.config, None).unwrap();
 
         let worktree_path = env.config.features_dir.join("up-to-date").join("repo-2");
 
@@ -319,6 +445,117 @@ mod tests {
         assert!(
             log_str.contains("update on main"),
             "worktree should have the main commit after sync"
+        );
+    }
+
+    #[test]
+    fn test_sync_with_different_default_branches() {
+        let env = TestEnv::new();
+
+        let bare1 = env.setup_bare_repo("repo-main");
+        let source1 = env.setup_source_repo("repo-main", &bare1);
+
+        let bare2 = env.setup_bare_repo_with_master("repo-master");
+        let source2 = env.setup_source_repo_with_master("repo-master", &bare2);
+
+        env.create_worktree("mixed-branches", "repo-main", &source1);
+        env.create_worktree("mixed-branches", "repo-master", &source2);
+
+        let file_path1 = source1.join("update.txt");
+        fs::write(&file_path1, "updated-main").unwrap();
+        Command::new("git")
+            .args(["-C", source1.to_str().unwrap(), "add", "."])
+            .status()
+            .expect("failed to add");
+        Command::new("git")
+            .args([
+                "-C",
+                source1.to_str().unwrap(),
+                "commit",
+                "-m",
+                "update on main",
+            ])
+            .status()
+            .expect("failed to commit");
+        Command::new("git")
+            .args(["-C", source1.to_str().unwrap(), "push"])
+            .status()
+            .expect("failed to push");
+
+        let file_path2 = source2.join("update.txt");
+        fs::write(&file_path2, "updated-master").unwrap();
+        Command::new("git")
+            .args(["-C", source2.to_str().unwrap(), "add", "."])
+            .status()
+            .expect("failed to add");
+        Command::new("git")
+            .args([
+                "-C",
+                source2.to_str().unwrap(),
+                "commit",
+                "-m",
+                "update on master",
+            ])
+            .status()
+            .expect("failed to commit");
+        Command::new("git")
+            .args(["-C", source2.to_str().unwrap(), "push"])
+            .status()
+            .expect("failed to push");
+
+        let result = run("mixed-branches", &env.config, None);
+        assert!(
+            result.is_ok(),
+            "sync should succeed with different default branches: {:?}",
+            result.err()
+        );
+
+        let wt2_path = env
+            .config
+            .features_dir
+            .join("mixed-branches")
+            .join("repo-master");
+
+        let log2 = Command::new("git")
+            .args(["-C", wt2_path.to_str().unwrap(), "log", "--oneline", "-1"])
+            .output()
+            .expect("failed to get log");
+        let log2_str = String::from_utf8_lossy(&log2.stdout);
+        assert!(
+            log2_str.contains("update on master") || log2_str.contains("update on main"),
+            "repo-master should have the update commit, got: {}",
+            log2_str
+        );
+    }
+
+    #[test]
+    fn test_sync_with_explicit_from_branch() {
+        let env = TestEnv::new();
+        let bare = env.setup_bare_repo("repo-test");
+        let source = env.setup_source_repo("repo-test", &bare);
+
+        env.create_worktree("explicit-from", "repo-test", &source);
+
+        let file_path = source.join("update.txt");
+        fs::write(&file_path, "updated").unwrap();
+        Command::new("git")
+            .args(["-C", source.to_str().unwrap(), "add", "."])
+            .status()
+            .expect("failed to add");
+        Command::new("git")
+            .args(["-C", source.to_str().unwrap(), "commit", "-m", "update"])
+            .status()
+            .expect("failed to commit");
+        Command::new("git")
+            .args(["-C", source.to_str().unwrap(), "push"])
+            .status()
+            .expect("failed to push");
+
+        let result = run("explicit-from", &env.config, Some("main"));
+        assert!(
+            result.is_ok(),
+            "sync with explicit --from should succeed: {:?}",
+            result.err()
         );
     }
 }

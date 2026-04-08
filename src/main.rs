@@ -22,8 +22,8 @@ fn main() -> Result<()> {
         cli::Commands::Remove { feature_name, yes } => {
             commands::remove::run(&feature_name, yes, &config)?;
         }
-        cli::Commands::Sync { feature_name } => {
-            commands::sync::run(&feature_name, &config)?;
+        cli::Commands::Sync { feature_name, from } => {
+            commands::sync::run(&feature_name, &config, from.as_deref())?;
         }
         cli::Commands::Add {
             feature_name,
