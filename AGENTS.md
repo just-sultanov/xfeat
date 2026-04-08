@@ -35,30 +35,30 @@ src/
 
 ## Dependencies
 
-| Crate           | Purpose                             |
-| --------------- | ----------------------------------- |
-| `anyhow`        | Error handling in main              |
-| `clap` (derive) | CLI argument parsing                |
-| `thiserror`     | Typed domain errors                 |
-| `shellexpand`   | Tilde and env var path expansion    |
-| `include_dir`   | Embed shell scripts at compile time |
+| Crate           | Purpose                                   |
+| --------------- | ----------------------------------------- |
+| `anyhow`        | Error handling in main                    |
+| `clap` (derive) | CLI argument parsing                      |
+| `thiserror`     | Typed domain errors                       |
+| `shellexpand`   | Tilde and env var path expansion          |
+| `include_dir`   | Embed shell scripts at compile time       |
 
 ## Development commands
 
 When `mise` is available, use `mise run <task>`. Otherwise, run `bin/<script>` directly.
 
-| Action               | Command                                             |
-| -------------------- | --------------------------------------------------- |
-| Test                 | `mise run test` or `bin/test`                       |
-| Lint (fmt + clippy)  | `mise run lint` or `bin/lint`                       |
-| Check (lint + test)  | `mise run check` or `bin/check`                     |
-| Clean                | `mise run clean` or `bin/clean`                     |
-| Build (macOS arm)    | `mise run build-macos-arm` or `bin/build-macos-arm` |
-| Build (macOS x86)    | `mise run build-macos-x86` or `bin/build-macos-x86` |
-| Build (Linux)        | `mise run build-linux` or `bin/build-linux`         |
-| Build (Windows)      | `mise run build-windows` or `bin/build-windows`     |
-| Setup tools          | `mise run setup-tools` or `bin/setup-tools`         |
-| Publish to crates.io | `mise run publish-crates` or `bin/publish-crates`   |
+| Action               | Command                                               |
+| -------------------- | ----------------------------------------------------- |
+| Test                 | `mise run test` or `bin/test`                         |
+| Lint (fmt + clippy)  | `mise run lint` or `bin/lint`                         |
+| Check (lint + test)  | `mise run check` or `bin/check`                       |
+| Clean                | `mise run clean` or `bin/clean`                       |
+| Build (macOS arm)    | `mise run build-macos-arm` or `bin/build-macos-arm`   |
+| Build (macOS x86)    | `mise run build-macos-x86` or `bin/build-macos-x86`   |
+| Build (Linux)        | `mise run build-linux` or `bin/build-linux`           |
+| Build (Windows)      | `mise run build-windows` or `bin/build-windows`       |
+| Setup tools          | `mise run setup-tools` or `bin/setup-tools`           |
+| Publish to crates.io | `mise run publish-crates` or `bin/publish-crates`     |
 
 Always run `mise run check` before committing changes.
 
@@ -82,10 +82,10 @@ Always run `mise run check` before committing changes.
 
 Two environment variables control behavior:
 
-| Variable          | Description                                   | Default                |
-| ----------------- | --------------------------------------------- | ---------------------- |
-| `XF_REPOS_DIR`    | Directory containing source git repositories  | `~/workspace/repos`    |
-| `XF_FEATURES_DIR` | Directory where feature worktrees are created | `~/workspace/features` |
+| Variable          | Description                                    | Default                 |
+| ----------------- | ---------------------------------------------- | ----------------------- |
+| `XF_REPOS_DIR`    | Directory containing source git repositories   | `~/workspace/repos`     |
+| `XF_FEATURES_DIR` | Directory where feature worktrees are created  | `~/workspace/features`  |
 
 Paths are resolved: env vars expanded → tilde expanded → relative made absolute via cwd.
 
@@ -125,19 +125,19 @@ xf remove checkout-v2
 
 ### Commands
 
-| Command                                                       | Description                                          |
-| ------------------------------------------------------------- | ---------------------------------------------------- |
-| `xf new <feature>`                                            | Create empty feature directory                       |
-| `xf add <feature> <repos...>`                                 | Add git worktrees to a feature                       |
-| `xf add <feature> <repos...> --from <branch>`                 | Branch from specific source branch                   |
-| `xf add <feature> <repos...> --branch <name>`                 | Use custom branch name                               |
-| `xf add <feature> <repos...> --from <branch> --branch <name>` | Branch from specific branch with custom name         |
-| `xf list`                                                     | List all features with worktrees and branches        |
-| `xf list --path`                                              | Also show worktree paths                             |
-| `xf sync <feature>`                                           | Rebase feature onto latest origin/branch (auto-detected) |
-| `xf sync <feature> --from <branch>`                           | Rebase feature onto specific branch                     |
-| `xf remove <feature>`                                         | Remove feature and its worktrees (with confirmation) |
-| `xf remove <feature> --yes`                                   | Remove without confirmation                          |
+| Command                                                         | Description                                               |
+| --------------------------------------------------------------- | --------------------------------------------------------- |
+| `xf new <feature>`                                              | Create empty feature directory                            |
+| `xf add <feature> <repos...>`                                   | Add git worktrees to a feature                            |
+| `xf add <feature> <repos...> --from <branch>`                   | Branch from specific source branch                        |
+| `xf add <feature> <repos...> --branch <name>`                   | Use custom branch name                                    |
+| `xf add <feature> <repos...> --from <branch> --branch <name>`   | Branch from specific branch with custom name              |
+| `xf list`                                                       | List all features with worktrees and branches             |
+| `xf list --path`                                                | Also show worktree paths                                  |
+| `xf sync <feature>`                                             | Rebase feature onto latest origin/branch (auto-detected)  |
+| `xf sync <feature> --from <branch>`                             | Rebase feature onto specific branch                       |
+| `xf remove <feature>`                                           | Remove feature and its worktrees (with confirmation)      |
+| `xf remove <feature> --yes`                                     | Remove without confirmation                               |
 
 ### AI-assisted development
 

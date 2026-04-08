@@ -432,10 +432,10 @@ export XF_REPOS_DIR=~/projects/project-x/repos
 export XF_FEATURES_DIR=~/projects/project-x/features
 ```
 
-| Variable          | Description                                   | Default                |
-| ----------------- | --------------------------------------------- | ---------------------- |
-| `XF_REPOS_DIR`    | Directory containing source git repositories  | `~/workspace/repos`    |
-| `XF_FEATURES_DIR` | Directory where feature worktrees are created | `~/workspace/features` |
+| Variable          | Description                                    | Default                 |
+| ----------------- | ---------------------------------------------- | ----------------------- |
+| `XF_REPOS_DIR`    | Directory containing source git repositories   | `~/workspace/repos`     |
+| `XF_FEATURES_DIR` | Directory where feature worktrees are created  | `~/workspace/features`  |
 
 Paths can be absolute (`/tmp/repos`), relative (`./repos`), or tilde-based (`~/repos`). All are resolved correctly.
 

@@ -78,13 +78,13 @@ bin/
 
 ## Dependencies
 
-| Crate           | Purpose                          |
-| --------------- | -------------------------------- |
-| `clap` (derive) | CLI argument parsing             |
-| `thiserror`     | Custom error types               |
-| `anyhow`        | Application-level error handling |
-| `shellexpand`   | Expand `~` and env vars in paths |
-| `include_dir`   | Embed shell/ directory at compile time |
+| Crate           | Purpose                                   |
+| --------------- | ----------------------------------------- |
+| `clap` (derive) | CLI argument parsing                      |
+| `thiserror`     | Custom error types                        |
+| `anyhow`        | Application-level error handling          |
+| `shellexpand`   | Expand `~` and env vars in paths          |
+| `include_dir`   | Embed shell/ directory at compile time    |
 
 ## Configuration
 
