@@ -363,13 +363,14 @@ xf sync <feature-name> --from <branch>
 For each worktree in the feature:
 
 1. Fetches latest changes from remote
-2. Rebases the feature branch onto `origin/main` (auto-detected)
+2. Rebases the feature branch onto `origin/<branch>` (default: auto-detected from origin/HEAD)
 3. Stops on first conflict with an error message
 
 **Example:**
 
 ```bash
 xf sync STORY-123-add-payment
+xf sync STORY-123-add-payment --from develop
 ```
 
 **Typical workflow before merging:**

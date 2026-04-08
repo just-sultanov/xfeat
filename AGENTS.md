@@ -134,7 +134,8 @@ xf remove checkout-v2
 | `xf add <feature> <repos...> --from <branch> --branch <name>` | Branch from specific branch with custom name         |
 | `xf list`                                                     | List all features with worktrees and branches        |
 | `xf list --path`                                              | Also show worktree paths                             |
-| `xf sync <feature>`                                           | Rebase feature onto latest origin/main               |
+| `xf sync <feature>`                                           | Rebase feature onto latest origin/branch (auto-detected) |
+| `xf sync <feature> --from <branch>`                           | Rebase feature onto specific branch                     |
 | `xf remove <feature>`                                         | Remove feature and its worktrees (with confirmation) |
 | `xf remove <feature> --yes`                                   | Remove without confirmation                          |
 

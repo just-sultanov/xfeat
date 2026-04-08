@@ -126,7 +126,7 @@ bin/
   - `xf new <feature>` — creates an empty feature directory
   - `xf add <feature> <repos...>` — adds worktrees to a feature (supports `--from` and `--branch`)
   - `xf remove` — `cd` out if currently in the feature directory (with confirmation prompt)
-  - `xf sync` — syncs feature with latest main
+  - `xf sync` — syncs feature with latest main (supports `--from`)
   - Other commands — proxy to `xfeat`
   - Autocompletion for repository names (`xf new <TAB>`, `xf add <TAB>`) with automatic filtering of already-specified repos
   - Autocomplete for `xf add` shows features for the first arg, repos (excluding already-added ones) for subsequent args
