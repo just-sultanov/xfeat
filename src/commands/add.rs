@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::config::Config;
 use crate::error::Error;
 use crate::worktree;
@@ -19,7 +21,7 @@ pub fn run(
 
     if let Some(from) = from_branch {
         for repo_name in repos {
-            let repo_path = config.repos_dir.join(repo_name);
+            let repo_path = find_repo_path(repo_name, config);
             if !repo_path.exists() || !worktree::is_git_repo(&repo_path) {
                 anyhow::bail!("repository '{repo_name}' not found or is not a git repository");
             }
@@ -33,7 +35,7 @@ pub fn run(
 
     if branch_name.is_some() {
         for repo_name in repos {
-            let repo_path = config.repos_dir.join(repo_name);
+            let repo_path = find_repo_path(repo_name, config);
             if !repo_path.exists() || !worktree::is_git_repo(&repo_path) {
                 anyhow::bail!("repository '{repo_name}' not found or is not a git repository");
             }
@@ -51,7 +53,7 @@ pub fn run(
     let mut added_count = 0;
 
     for repo_name in repos {
-        let repo_path = config.repos_dir.join(repo_name);
+        let repo_path = find_repo_path(repo_name, config);
         if !repo_path.exists() || !worktree::is_git_repo(&repo_path) {
             anyhow::bail!("repository '{repo_name}' not found or is not a git repository");
         }
@@ -82,6 +84,10 @@ pub fn run(
     }
 
     Ok(())
+}
+
+fn find_repo_path(repo_name: &str, config: &Config) -> PathBuf {
+    config.repos_dir.join(repo_name)
 }
 
 #[cfg(test)]

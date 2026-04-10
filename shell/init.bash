@@ -52,7 +52,7 @@ _xfeat_complete() {
   remove | sync)
     if [[ -d "$features_dir" ]]; then
       local features
-      features=$(command ls -1 "$features_dir" 2>/dev/null)
+      features=$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)
       mapfile -t COMPREPLY < <(compgen -W "$features" -- "$cur")
     fi
     ;;
@@ -60,20 +60,20 @@ _xfeat_complete() {
     if [[ $COMP_CWORD -eq 2 ]]; then
       if [[ -d "$features_dir" ]]; then
         local features
-        features=$(command ls -1 "$features_dir" 2>/dev/null)
+        features=$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)
         mapfile -t COMPREPLY < <(compgen -W "$features" -- "$cur")
       fi
     else
       if [[ -d "$repos_dir" ]]; then
         local repos
-        repos=$(command ls -1 "$repos_dir" 2>/dev/null)
+        repos=$(find "$repos_dir" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')
         local feature="${COMP_WORDS[2]}"
         local feature_path="${features_dir%/}/$feature"
         if [[ -d "$feature_path" ]]; then
           local used
-          used=$(command ls -1 "$feature_path" 2>/dev/null)
+          used=$(find "$feature_path" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')
           for u in $used; do
-            repos="${repos/$u/}"
+            repos="${repos//$u/}"
           done
         fi
         mapfile -t COMPREPLY < <(compgen -W "$repos" -- "$cur")

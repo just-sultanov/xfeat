@@ -38,7 +38,7 @@ _xfeat_complete() {
   local repos_dir="${XF_REPOS_DIR/#\~/$HOME}"
   local features_dir="${XF_FEATURES_DIR/#\~/$HOME}"
 
-  commands=("new:create a new feature" "list:list all features" "remove:remove a feature" "sync:sync a feature with main" "add:add worktrees to an existing feature")
+  commands=("new" "list" "remove" "sync" "add")
 
   if [ $CURRENT -eq 2 ]; then
     _describe 'command' commands
@@ -47,7 +47,7 @@ _xfeat_complete() {
     case "$cmd" in
       remove|sync)
         if [[ -d "$features_dir" ]]; then
-          features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")
+          features=("${(@f)$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)}")
           if (( ${#features} > 0 )); then
             _describe 'feature' features
           fi
@@ -56,18 +56,18 @@ _xfeat_complete() {
       add)
         if [ $CURRENT -eq 3 ]; then
           if [[ -d "$features_dir" ]]; then
-            features=("${(@f)$(command ls -1 "$features_dir" 2>/dev/null)}")
+            features=("${(@f)$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)}")
             if (( ${#features} > 0 )); then
               _describe 'feature' features
             fi
           fi
         else
           if [[ -d "$repos_dir" ]]; then
-            repos=("${(@f)$(command ls -1 "$repos_dir" 2>/dev/null)}")
+            repos=("${(@f)$(find "$repos_dir" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')}")
             local feature="${words[3]}"
             local feature_path="${features_dir%/}/$feature"
             if [[ -d "$feature_path" ]]; then
-              local used=("${(@f)$(command ls -1 "$feature_path" 2>/dev/null)}")
+              local used=("${(@f)$(find "$feature_path" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')}")
               repos=("${(@)repos:|used}")
             fi
             if (( ${#repos} > 0 )); then

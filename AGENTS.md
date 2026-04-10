@@ -123,21 +123,64 @@ xf sync checkout-v2
 xf remove checkout-v2
 ```
 
+### Nested repositories
+
+Repositories can be organized in groups using subdirectories. Worktrees preserve this structure:
+
+```bash
+# Repositories in $XF_REPOS_DIR:
+# repos/
+#   services/
+#     payment-service/
+#     checkout-service/
+#   libs/
+#     common-utils/
+
+# Add nested repositories - xfeat creates matching structure
+xf new story-123
+xf add story-123 services/payment-service libs/common-utils
+
+# Result in $XF_FEATURES_DIR:
+# story-123/
+#   services/
+#     payment-service/
+#   libs/
+#     common-utils/
+
+# xf list shows tree structure
+xf list
+├── story-123
+│   └── services/
+│       ├── payment-service (branch: story-123)
+│       └── common-utils (branch: story-123)
+├── bugfix-456
+│   └── core-utils (branch: bugfix-456)
+```
+
+You can also create nested features:
+
+```bash
+xf new story-123/services
+xf add story-123/services services/payment-service
+```
+
 ### Commands
 
 | Command                                                         | Description                                               |
 | --------------------------------------------------------------- | --------------------------------------------------------- |
-| `xf new <feature>`                                              | Create empty feature directory                            |
+| `xf new <feature>`                                              | Create empty feature directory (supports nested: `a/b/c`) |
 | `xf add <feature> <repos...>`                                   | Add git worktrees to a feature                            |
 | `xf add <feature> <repos...> --from <branch>`                   | Branch from specific source branch                        |
 | `xf add <feature> <repos...> --branch <name>`                   | Use custom branch name                                    |
 | `xf add <feature> <repos...> --from <branch> --branch <name>`   | Branch from specific branch with custom name              |
-| `xf list`                                                       | List all features with worktrees and branches             |
+| `xf list`                                                       | List all features with worktrees (tree view)              |
 | `xf list --path`                                                | Also show worktree paths                                  |
 | `xf sync <feature>`                                             | Rebase feature onto latest origin/branch (auto-detected)  |
 | `xf sync <feature> --from <branch>`                             | Rebase feature onto specific branch                       |
 | `xf remove <feature>`                                           | Remove feature and its worktrees (with confirmation)      |
 | `xf remove <feature> --yes`                                     | Remove without confirmation                               |
+
+> **Note:** Repository paths support nesting (e.g., `services/payment-service`). The directory structure is preserved in feature worktrees.
 
 ### AI-assisted development
 
@@ -164,6 +207,7 @@ xf sync ai-checkout-v3
 
 - Feature directories contain git worktrees, not clones
 - Worktrees are named after source repos in `$XF_REPOS_DIR`
+- Repository paths support nesting (e.g., `services/payment-service`) — the directory structure is preserved in feature worktrees
 - Branch names default to the feature name unless `--branch` is specified
 - `--from` specifies the source branch to create the feature branch from
 - Always run `xf sync` before merging to ensure the feature is up to date

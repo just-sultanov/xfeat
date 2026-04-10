@@ -37,22 +37,25 @@ pub fn run(feature_name: &str, config: &Config, from_branch: Option<&str>) -> an
 
 fn collect_worktrees(feature_dir: &Path) -> Vec<(String, std::path::PathBuf)> {
     let mut worktrees = Vec::new();
+    scan_recursive(feature_dir, feature_dir, &mut worktrees);
+    worktrees
+}
 
-    if let Ok(entries) = fs::read_dir(feature_dir) {
+fn scan_recursive(dir: &Path, base: &Path, worktrees: &mut Vec<(String, std::path::PathBuf)>) {
+    if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.is_dir() && path.join(".git").exists() {
-                let name = path
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .to_string();
-                worktrees.push((name, path));
+            if path.is_dir() {
+                if path.join(".git").exists() {
+                    let rel_path = path.strip_prefix(base).unwrap_or(&path);
+                    let name = rel_path.to_string_lossy().to_string();
+                    worktrees.push((name, path));
+                } else {
+                    scan_recursive(&path, base, worktrees);
+                }
             }
         }
     }
-
-    worktrees
 }
 
 fn find_source_repo(worktree_path: &Path) -> anyhow::Result<std::path::PathBuf> {

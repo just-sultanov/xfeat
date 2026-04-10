@@ -1,5 +1,6 @@
+use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::config::Config;
@@ -10,7 +11,7 @@ pub fn run(config: &Config, show_path: bool) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let mut features: Vec<(String, Vec<(String, String)>)> = Vec::new();
+    let mut feature_map: HashMap<String, Vec<WorktreeEntry>> = HashMap::new();
 
     for entry in fs::read_dir(&config.features_dir)? {
         let entry = entry?;
@@ -20,11 +21,11 @@ pub fn run(config: &Config, show_path: bool) -> anyhow::Result<()> {
         }
 
         let feature_name = path.file_name().unwrap().to_string_lossy().to_string();
-        let worktrees = list_worktrees(&path);
-
-        features.push((feature_name, worktrees));
+        let worktrees = collect_worktrees_recursive(&path, &feature_name);
+        feature_map.insert(feature_name, worktrees);
     }
 
+    let mut features: Vec<_> = feature_map.into_iter().collect();
     features.sort_by(|a, b| a.0.cmp(&b.0));
 
     if features.is_empty() {
@@ -32,73 +33,48 @@ pub fn run(config: &Config, show_path: bool) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let show_path_only = show_path;
-
-    for (i, (feature_name, worktrees)) in features.iter().enumerate() {
-        let is_last_feature = i == features.len() - 1;
-        let feature_connector = if is_last_feature {
-            "└── "
-        } else {
-            "├── "
-        };
-        let child_prefix = if is_last_feature { "    " } else { "│   " };
-
-        if worktrees.is_empty() {
-            println!("{feature_connector}{feature_name} (empty)");
-        } else {
-            println!("{feature_connector}{feature_name}");
-
-            let mut sorted_worktrees = worktrees.clone();
-            sorted_worktrees.sort_by(|a, b| a.0.cmp(&b.0));
-
-            for (j, (repo, branch)) in sorted_worktrees.iter().enumerate() {
-                let is_last_repo = j == sorted_worktrees.len() - 1;
-                let repo_connector = if is_last_repo {
-                    "└── "
-                } else {
-                    "├── "
-                };
-
-                println!("{child_prefix}{repo_connector}{repo}");
-                let detail_prefix = format!(
-                    "{}{}",
-                    child_prefix,
-                    if is_last_repo { "    " } else { "│   " }
-                );
-
-                println!("{detail_prefix}branch: {branch}");
-
-                if show_path_only {
-                    let worktree_path = config.features_dir.join(feature_name).join(repo);
-                    let display_path =
-                        shellexpand::tilde(&worktree_path.to_string_lossy()).to_string();
-                    println!("{detail_prefix}path: {display_path}");
-                }
-            }
-        }
-    }
+    print_features(&features, config, show_path);
 
     Ok(())
 }
 
-fn list_worktrees(feature_dir: &PathBuf) -> Vec<(String, String)> {
+#[derive(Debug, Clone)]
+struct WorktreeEntry {
+    #[allow(dead_code)]
+    path: PathBuf,
+    rel_path: String,
+    branch: String,
+}
+
+fn collect_worktrees_recursive(feature_dir: &Path, _prefix: &str) -> Vec<WorktreeEntry> {
     let mut worktrees = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(feature_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() && path.join(".git").exists() {
-                let name = path.file_name().unwrap().to_string_lossy().to_string();
-                let branch = get_worktree_branch(&path);
-                worktrees.push((name, branch));
-            }
-        }
-    }
-
+    scan_recursive(feature_dir, feature_dir, &mut worktrees);
     worktrees
 }
 
-fn get_worktree_branch(worktree_path: &std::path::Path) -> String {
+fn scan_recursive(dir: &Path, base: &Path, worktrees: &mut Vec<WorktreeEntry>) {
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                if path.join(".git").exists() {
+                    let rel_path = path.strip_prefix(base).unwrap_or(&path);
+                    let rel_str = rel_path.to_string_lossy().to_string();
+                    let branch = get_worktree_branch(&path);
+                    worktrees.push(WorktreeEntry {
+                        path,
+                        rel_path: rel_str,
+                        branch,
+                    });
+                } else {
+                    scan_recursive(&path, base, worktrees);
+                }
+            }
+        }
+    }
+}
+
+fn get_worktree_branch(worktree_path: &Path) -> String {
     let output = Command::new("git")
         .args([
             "-C",
@@ -118,6 +94,122 @@ fn get_worktree_branch(worktree_path: &std::path::Path) -> String {
             }
         }
         Err(_) => "unknown".to_string(),
+    }
+}
+
+fn print_features(features: &[(String, Vec<WorktreeEntry>)], config: &Config, show_path: bool) {
+    let total = features.len();
+
+    for (i, (feature_name, worktrees)) in features.iter().enumerate() {
+        let is_last_feature = i == total - 1;
+        let connector = if is_last_feature {
+            "└── "
+        } else {
+            "├── "
+        };
+
+        if worktrees.is_empty() {
+            println!("{connector}{feature_name} (empty)");
+        } else {
+            println!("{connector}{feature_name}");
+
+            let tree = build_tree(worktrees);
+            print_tree(&tree, is_last_feature, config, feature_name, show_path);
+        }
+    }
+}
+
+struct TreeNode {
+    name: String,
+    is_worktree: bool,
+    branch: Option<String>,
+    children: Vec<Self>,
+}
+
+fn build_tree(worktrees: &[WorktreeEntry]) -> Vec<TreeNode> {
+    let mut root: Vec<TreeNode> = Vec::new();
+
+    for wt in worktrees {
+        let parts: Vec<&str> = wt.rel_path.split('/').collect();
+        insert_into_tree(&mut root, &parts, wt);
+    }
+
+    sort_tree(&mut root);
+    root
+}
+
+fn insert_into_tree(nodes: &mut Vec<TreeNode>, parts: &[&str], worktree: &WorktreeEntry) {
+    if parts.is_empty() {
+        return;
+    }
+
+    let first = parts[0];
+    let rest = &parts[1..];
+
+    if rest.is_empty() {
+        nodes.push(TreeNode {
+            name: first.to_string(),
+            is_worktree: true,
+            branch: Some(worktree.branch.clone()),
+            children: Vec::new(),
+        });
+    } else {
+        let existing = nodes.iter_mut().find(|n| n.name == first && !n.is_worktree);
+        if let Some(node) = existing {
+            insert_into_tree(&mut node.children, rest, worktree);
+        } else {
+            let mut new_node = TreeNode {
+                name: first.to_string(),
+                is_worktree: false,
+                branch: None,
+                children: Vec::new(),
+            };
+            insert_into_tree(&mut new_node.children, rest, worktree);
+            nodes.push(new_node);
+        }
+    }
+}
+
+#[allow(clippy::ptr_arg)]
+fn sort_tree(nodes: &mut Vec<TreeNode>) {
+    nodes.sort_by(|a, b| a.name.cmp(&b.name));
+    for node in nodes.iter_mut() {
+        sort_tree(&mut node.children);
+    }
+}
+
+fn print_tree(
+    nodes: &[TreeNode],
+    is_last_feature: bool,
+    config: &Config,
+    feature_name: &str,
+    show_path: bool,
+) {
+    let total = nodes.len();
+    let prefix = if is_last_feature { "    " } else { "│   " };
+
+    for (i, node) in nodes.iter().enumerate() {
+        let is_last = i == total - 1;
+        let connector = if is_last { "└── " } else { "├── " };
+        let child_prefix = if is_last { "    " } else { "│   " };
+
+        if node.is_worktree {
+            println!("{prefix}{connector}{}", node.name);
+            let detail_prefix = format!("{prefix}{child_prefix}");
+            println!(
+                "{detail_prefix}branch: {}",
+                node.branch.as_deref().unwrap_or("unknown")
+            );
+
+            if show_path {
+                let worktree_path = config.features_dir.join(feature_name).join(&node.name);
+                let display_path = shellexpand::tilde(&worktree_path.to_string_lossy()).to_string();
+                println!("{detail_prefix}path: {display_path}");
+            }
+        } else {
+            println!("{prefix}{connector}{}/", node.name);
+            print_tree(&node.children, is_last, config, feature_name, show_path);
+        }
     }
 }
 
@@ -451,5 +543,21 @@ mod tests {
         env.create_worktree("JIRA-123", "service-1", &repo_path);
 
         run(&env.config, true).unwrap();
+    }
+
+    #[test]
+    fn test_list_nested_worktrees() {
+        let env = TestEnv::new();
+        let repo1 = env.setup_repo("payment-service");
+        let repo2 = env.setup_repo("checkout-service");
+
+        env.create_worktree("story-123", "services/payment-service", &repo1);
+        env.create_worktree("story-123", "services/checkout-service", &repo2);
+
+        run(&env.config, false).unwrap();
+
+        let feature_dir = env.config.features_dir.join("story-123");
+        assert!(feature_dir.join("services/payment-service").exists());
+        assert!(feature_dir.join("services/checkout-service").exists());
     }
 }

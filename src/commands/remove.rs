@@ -60,38 +60,52 @@ pub fn run(feature_name: &str, skip_confirm: bool, config: &Config) -> anyhow::R
 
 fn list_worktrees(feature_dir: &PathBuf) -> Vec<(String, String)> {
     let mut worktrees = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(feature_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() && path.join(".git").exists() {
-                let name = path.file_name().unwrap().to_string_lossy().to_string();
-                let branch = get_worktree_branch(&path);
-                worktrees.push((name, branch));
-            }
-        }
-    }
-
+    scan_recursive(feature_dir, feature_dir, &mut worktrees);
     worktrees.sort_by(|a, b| a.0.cmp(&b.0));
     worktrees
 }
 
-fn check_uncommitted_changes(feature_dir: &PathBuf) -> Vec<String> {
-    let mut uncommitted = Vec::new();
-
-    if let Ok(entries) = fs::read_dir(feature_dir) {
+fn scan_recursive(dir: &PathBuf, base: &PathBuf, worktrees: &mut Vec<(String, String)>) {
+    if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.is_dir() && path.join(".git").exists() {
-                let name = path.file_name().unwrap().to_string_lossy().to_string();
-                if has_uncommitted(&path) {
-                    uncommitted.push(name);
+            if path.is_dir() {
+                if path.join(".git").exists() {
+                    let rel_path = path.strip_prefix(base).unwrap_or(&path);
+                    let name = rel_path.to_string_lossy().to_string();
+                    let branch = get_worktree_branch(&path);
+                    worktrees.push((name, branch));
+                } else {
+                    scan_recursive(&path, base, worktrees);
                 }
             }
         }
     }
+}
 
+fn check_uncommitted_changes(feature_dir: &PathBuf) -> Vec<String> {
+    let mut uncommitted = Vec::new();
+    scan_uncommitted(feature_dir, feature_dir, &mut uncommitted);
     uncommitted
+}
+
+fn scan_uncommitted(dir: &PathBuf, base: &PathBuf, uncommitted: &mut Vec<String>) {
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                if path.join(".git").exists() {
+                    let rel_path = path.strip_prefix(base).unwrap_or(&path);
+                    let name = rel_path.to_string_lossy().to_string();
+                    if has_uncommitted(&path) {
+                        uncommitted.push(name);
+                    }
+                } else {
+                    scan_uncommitted(&path, base, uncommitted);
+                }
+            }
+        }
+    }
 }
 
 fn has_uncommitted(worktree_path: &std::path::Path) -> bool {
@@ -113,8 +127,8 @@ fn has_uncommitted(worktree_path: &std::path::Path) -> bool {
 fn remove_worktrees(feature_dir: &std::path::Path, worktrees: &[(String, String)]) {
     let mut source_repos = std::collections::HashSet::new();
 
-    for (repo, _) in worktrees {
-        let worktree_path = feature_dir.join(repo);
+    for (repo_rel_path, _) in worktrees {
+        let worktree_path = feature_dir.join(repo_rel_path);
 
         if let Some(source) = find_source_repo(&worktree_path) {
             let _ = Command::new("git")
@@ -138,6 +152,21 @@ fn remove_worktrees(feature_dir: &std::path::Path, worktrees: &[(String, String)
         let _ = Command::new("git")
             .args(["-C", source.to_str().unwrap(), "worktree", "prune"])
             .output();
+    }
+
+    cleanup_empty_dirs(feature_dir);
+}
+
+fn cleanup_empty_dirs(feature_dir: &std::path::Path) {
+    if let Ok(entries) = fs::read_dir(feature_dir) {
+        let mut dirs: Vec<_> = entries.filter_map(std::result::Result::ok).collect();
+        dirs.sort_by_key(|b| std::cmp::Reverse(b.path().as_os_str().len()));
+        for entry in dirs {
+            let path = entry.path();
+            if path.is_dir() && path.read_dir().map_or(true, |mut d| d.next().is_none()) {
+                let _ = fs::remove_dir(&path);
+            }
+        }
     }
 }
 

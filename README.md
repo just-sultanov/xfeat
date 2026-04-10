@@ -179,6 +179,52 @@ xf remove checkout-v2
 
 Each feature gets its own git worktrees, so you can switch between projects and features instantly without stashing or switching branches.
 
+### Nested repositories
+
+Repositories can be organized in groups using subdirectories. Worktrees preserve this structure:
+
+```bash
+# Example: repositories in $XF_REPOS_DIR
+# repos/
+#   services/
+#     payment-service/
+#     checkout-service/
+#   libs/
+#     common-utils/
+
+# Add nested repositories - xfeat creates matching structure
+xf new story-123
+xf add story-123 services/payment-service libs/common-utils
+```
+
+```
+$XF_FEATURES_DIR/
+└── story-123/
+    ├── services/
+    │   └── payment-service/  # worktree with branch story-123
+    └── libs/
+        └── common-utils/      # worktree with branch story-123
+```
+
+Tree output shows the nested structure:
+
+```bash
+xf list
+├── story-123
+│   └── services/
+│       ├── payment-service (branch: story-123)
+│       └── common-utils (branch: story-123)
+└── bugfix-456
+    └── core-utils (branch: bugfix-456)
+```
+
+Feature names can also be nested:
+
+```bash
+xf new story-123/services
+xf add story-123/services services/payment-service
+```
+
 ## Workflows
 
 ### AI-assisted development
@@ -273,9 +319,11 @@ xf new <feature-name>
 
 ```bash
 xf new STORY-123-add-payment
+# or nested
+xf new story-123/services
 ```
 
-This creates an empty directory. Add worktrees with `xf add`:
+This creates an empty directory (supports nested paths like `story-123/services`). Add worktrees with `xf add`:
 
 ```bash
 xf add STORY-123-add-payment payment-service checkout-service frontend
@@ -297,6 +345,9 @@ xf add <feature-name> <repos...> --from <branch> --branch <branch-name>
 ```bash
 # Add repos — branches named after the feature
 xf add STORY-123-add-payment payment-service checkout-service
+
+# Add nested repos — xfeat preserves directory structure
+xf add story-123 services/payment-service libs/common-utils
 
 # Add repos, branching from a specific source branch
 xf add STORY-123-add-payment payment-service --from develop
