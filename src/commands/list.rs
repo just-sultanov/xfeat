@@ -97,118 +97,23 @@ fn get_worktree_branch(worktree_path: &Path) -> String {
     }
 }
 
-fn print_features(features: &[(String, Vec<WorktreeEntry>)], config: &Config, show_path: bool) {
-    let total = features.len();
-
-    for (i, (feature_name, worktrees)) in features.iter().enumerate() {
-        let is_last_feature = i == total - 1;
-        let connector = if is_last_feature {
-            "└── "
-        } else {
-            "├── "
-        };
-
+fn print_features(features: &[(String, Vec<WorktreeEntry>)], _config: &Config, show_path: bool) {
+    for (feature_name, worktrees) in features {
         if worktrees.is_empty() {
-            println!("{connector}{feature_name} (empty)");
+            println!("{feature_name} (empty)");
         } else {
-            println!("{connector}{feature_name}");
-
-            let tree = build_tree(worktrees);
-            print_tree(&tree, is_last_feature, config, feature_name, show_path);
-        }
-    }
-}
-
-struct TreeNode {
-    name: String,
-    is_worktree: bool,
-    branch: Option<String>,
-    children: Vec<Self>,
-}
-
-fn build_tree(worktrees: &[WorktreeEntry]) -> Vec<TreeNode> {
-    let mut root: Vec<TreeNode> = Vec::new();
-
-    for wt in worktrees {
-        let parts: Vec<&str> = wt.rel_path.split('/').collect();
-        insert_into_tree(&mut root, &parts, wt);
-    }
-
-    sort_tree(&mut root);
-    root
-}
-
-fn insert_into_tree(nodes: &mut Vec<TreeNode>, parts: &[&str], worktree: &WorktreeEntry) {
-    if parts.is_empty() {
-        return;
-    }
-
-    let first = parts[0];
-    let rest = &parts[1..];
-
-    if rest.is_empty() {
-        nodes.push(TreeNode {
-            name: first.to_string(),
-            is_worktree: true,
-            branch: Some(worktree.branch.clone()),
-            children: Vec::new(),
-        });
-    } else {
-        let existing = nodes.iter_mut().find(|n| n.name == first && !n.is_worktree);
-        if let Some(node) = existing {
-            insert_into_tree(&mut node.children, rest, worktree);
-        } else {
-            let mut new_node = TreeNode {
-                name: first.to_string(),
-                is_worktree: false,
-                branch: None,
-                children: Vec::new(),
-            };
-            insert_into_tree(&mut new_node.children, rest, worktree);
-            nodes.push(new_node);
-        }
-    }
-}
-
-#[allow(clippy::ptr_arg)]
-fn sort_tree(nodes: &mut Vec<TreeNode>) {
-    nodes.sort_by(|a, b| a.name.cmp(&b.name));
-    for node in nodes.iter_mut() {
-        sort_tree(&mut node.children);
-    }
-}
-
-fn print_tree(
-    nodes: &[TreeNode],
-    is_last_feature: bool,
-    config: &Config,
-    feature_name: &str,
-    show_path: bool,
-) {
-    let total = nodes.len();
-    let prefix = if is_last_feature { "    " } else { "│   " };
-
-    for (i, node) in nodes.iter().enumerate() {
-        let is_last = i == total - 1;
-        let connector = if is_last { "└── " } else { "├── " };
-        let child_prefix = if is_last { "    " } else { "│   " };
-
-        if node.is_worktree {
-            println!("{prefix}{connector}{}", node.name);
-            let detail_prefix = format!("{prefix}{child_prefix}");
-            println!(
-                "{detail_prefix}branch: {}",
-                node.branch.as_deref().unwrap_or("unknown")
-            );
-
-            if show_path {
-                let worktree_path = config.features_dir.join(feature_name).join(&node.name);
-                let display_path = shellexpand::tilde(&worktree_path.to_string_lossy()).to_string();
-                println!("{detail_prefix}path: {display_path}");
+            println!("{feature_name}");
+            for wt in worktrees {
+                let branch = &wt.branch;
+                if show_path {
+                    println!(
+                        "  {} ({branch}) -> {}/{}",
+                        wt.rel_path, feature_name, wt.rel_path
+                    );
+                } else {
+                    println!("  {} ({branch})", wt.rel_path);
+                }
             }
-        } else {
-            println!("{prefix}{connector}{}/", node.name);
-            print_tree(&node.children, is_last, config, feature_name, show_path);
         }
     }
 }
