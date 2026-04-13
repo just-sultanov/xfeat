@@ -52,7 +52,7 @@ _xfeat_complete() {
   remove | sync)
     if [[ -d "$features_dir" ]]; then
       local features
-      features=$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)
+      features=$(ls -1d "$features_dir"/*/ 2>/dev/null | xargs -n1 basename)
       mapfile -t COMPREPLY < <(compgen -W "$features" -- "$cur")
     fi
     ;;
@@ -60,18 +60,18 @@ _xfeat_complete() {
     if [[ $COMP_CWORD -eq 2 ]]; then
       if [[ -d "$features_dir" ]]; then
         local features
-        features=$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)
+        features=$(ls -1d "$features_dir"/*/ 2>/dev/null | xargs -n1 basename)
         mapfile -t COMPREPLY < <(compgen -W "$features" -- "$cur")
       fi
     else
       if [[ -d "$repos_dir" ]]; then
         local repos
-        repos=$(find "$repos_dir" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')
+        repos=$(find "$repos_dir" -name .git -exec dirname {} \; 2>/dev/null | sed "s|$repos_dir/||")
         local feature="${COMP_WORDS[2]}"
         local feature_path="${features_dir%/}/$feature"
         if [[ -d "$feature_path" ]]; then
           local used
-          used=$(find "$feature_path" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')
+          used=$(find "$feature_path" -name .git -exec dirname {} \; 2>/dev/null | sed "s|$feature_path/||")
           for u in $used; do
             repos="${repos//$u/}"
           done

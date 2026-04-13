@@ -47,7 +47,7 @@ _xfeat_complete() {
     case "$cmd" in
       remove|sync)
         if [[ -d "$features_dir" ]]; then
-          features=("${(@f)$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)}")
+          features=("${(@f)$(ls -1d "$features_dir"/*/ 2>/dev/null | xargs -n1 basename)}")
           if (( ${#features} > 0 )); then
             _describe 'feature' features
           fi
@@ -56,18 +56,19 @@ _xfeat_complete() {
       add)
         if [ $CURRENT -eq 3 ]; then
           if [[ -d "$features_dir" ]]; then
-            features=("${(@f)$(find "$features_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null)}")
+            features=("${(@f)$(ls -1d "$features_dir"/*/ 2>/dev/null | xargs -n1 basename)}")
             if (( ${#features} > 0 )); then
               _describe 'feature' features
             fi
           fi
         else
           if [[ -d "$repos_dir" ]]; then
-            repos=("${(@f)$(find "$repos_dir" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')}")
+            repos=("${(@f)$(find "$repos_dir" -name .git -exec dirname {} \; 2>/dev/null | sed "s|$repos_dir/||")}")
             local feature="${words[3]}"
             local feature_path="${features_dir%/}/$feature"
             if [[ -d "$feature_path" ]]; then
-              local used=("${(@f)$(find "$feature_path" -mindepth 1 -type d -printf '%P\n' 2>/dev/null | sed 's|/$||')}")
+              local used
+              used=$(find "$feature_path" -name .git -exec dirname {} \; 2>/dev/null | sed "s|$feature_path/||")
               repos=("${(@)repos:|used}")
             fi
             if (( ${#repos} > 0 )); then
