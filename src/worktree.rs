@@ -55,7 +55,14 @@ pub fn create_worktree(
 
 pub fn fetch_repo(repo: &Path) -> Result<()> {
     let output = Command::new("git")
-        .args(["-C", repo.to_str().unwrap(), "fetch", "origin"])
+        .args([
+            "-C",
+            repo.to_str().unwrap(),
+            "fetch",
+            "origin",
+            "--prune",
+            "--prune-tags",
+        ])
         .output()
         .map_err(|e| Error::GitCommand(e.to_string()))?;
 
