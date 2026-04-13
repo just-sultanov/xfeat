@@ -62,6 +62,18 @@ When `mise` is available, use `mise run <task>`. Otherwise, run `bin/<script>` d
 
 Always run `mise run check` before committing changes.
 
+## Git workflow rules
+
+**Allowed:**
+- Use `git status`, `git diff`, `git log` for verification
+
+**Forbidden:**
+- Creates commits (`git commit`)
+- Push changes (`git push`)
+- Any other git operations
+
+Agent must show ready changes to user and wait for their confirmation before committing and pushing.
+
 ## Code conventions
 
 - Rust 2024 edition
@@ -149,19 +161,18 @@ xf add story-123 services/payment-service libs/common-utils
 
 # xf list shows tree structure
 xf list
-├── story-123
-│   └── services/
-│       ├── payment-service (branch: story-123)
-│       └── common-utils (branch: story-123)
-├── bugfix-456
-│   └── core-utils (branch: bugfix-456)
+story-123
+  services/payment-service (story-123)
+  services/common-utils (story-123)
+bugfix-456
+  core-utils (bugfix-456)
 ```
 
 You can also create nested features:
 
 ```bash
-xf new story-123/services
-xf add story-123/services services/payment-service
+xf new epic-1/story-123
+xf add epic-1/story-123 services/payment-service
 ```
 
 ### Commands

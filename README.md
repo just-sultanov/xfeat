@@ -163,12 +163,22 @@ xf list
 ```
 
 ```
-├── checkout-v2
-│   ├── payment-service
-│   │   branch: checkout-v2
-│   └── checkout-service
-│       branch: checkout-v2
-└── payment-refactor (empty)
+checkout-v2
+  payment-service (checkout-v2)
+  checkout-service (checkout-v2)
+payment-refactor (empty)
+```
+
+**5. Show paths:**
+
+```bash
+xf list --path
+```
+
+```
+checkout-v2
+  payment-service (checkout-v2) -> checkout-v2/payment-service
+  checkout-service (checkout-v2) -> checkout-v2/checkout-service
 ```
 
 **5. Done? Clean up:**
@@ -210,19 +220,18 @@ Tree output shows the nested structure:
 
 ```bash
 xf list
-├── story-123
-│   └── services/
-│       ├── payment-service (branch: story-123)
-│       └── common-utils (branch: story-123)
-└── bugfix-456
-    └── core-utils (branch: bugfix-456)
+story-123
+  services/payment-service (story-123)
+  services/common-utils (story-123)
+bugfix-456
+  core-utils (bugfix-456)
 ```
 
 Feature names can also be nested:
 
 ```bash
-xf new story-123/services
-xf add story-123/services services/payment-service
+xf new epic-1/story-123
+xf add epic-1/story-123 services/payment-service
 ```
 
 ## Workflows
@@ -290,19 +299,14 @@ xf list
 ```
 
 ```
-├── checkout-v2
-│   ├── payment-service
-│   │   branch: checkout-v2
-│   └── checkout-service
-│       branch: checkout-v2
-├── payment-refactor
-│   └── payment-service
-│       branch: payment-refactor
-└── dashboard-redesign
-    ├── frontend
-    │   branch: dashboard-redesign
-    └── backend
-        branch: dashboard-redesign
+checkout-v2
+  payment-service (checkout-v2)
+  checkout-service (checkout-v2)
+payment-refactor
+  payment-service (payment-refactor)
+dashboard-redesign
+  frontend (dashboard-redesign)
+  backend (dashboard-redesign)
 ```
 
 ## Commands
@@ -320,10 +324,10 @@ xf new <feature-name>
 ```bash
 xf new STORY-123-add-payment
 # or nested
-xf new story-123/services
+xf new epic-1/story-123
 ```
 
-This creates an empty directory (supports nested paths like `story-123/services`). Add worktrees with `xf add`:
+This creates an empty directory (supports nested paths like `epic-1/story-123`). Add worktrees with `xf add`:
 
 ```bash
 xf add STORY-123-add-payment payment-service checkout-service frontend
@@ -373,31 +377,22 @@ xf list --path
 **Default output:**
 
 ```
-├── STORY-123-add-payment
-│   ├── payment-service
-│   │   branch: STORY-123-add-payment
-│   └── checkout-service
-│       branch: STORY-123-add-payment
-├── STORY-456-redesign-checkout
-│   └── frontend
-│       branch: STORY-456-redesign-checkout
-└── STORY-789-empty (empty)
+STORY-123-add-payment
+  payment-service (STORY-123-add-payment)
+  checkout-service (STORY-123-add-payment)
+STORY-456-redesign-checkout
+  frontend (STORY-456-redesign-checkout)
+STORY-789-empty (empty)
 ```
 
 **With `--path`:**
 
 ```
-├── STORY-123-add-payment
-│   ├── payment-service
-│   │   branch: STORY-123-add-payment
-│   │   path: ~/workspace/features/STORY-123-add-payment/payment-service
-│   └── checkout-service
-│       branch: STORY-123-add-payment
-│       path: ~/workspace/features/STORY-123-add-payment/checkout-service
-└── STORY-456-redesign-checkout
-    └── frontend
-        branch: feature/TASK-456-redesign-checkout
-        path: ~/workspace/features/STORY-456-redesign-checkout/frontend
+STORY-123-add-payment
+  payment-service (STORY-123-add-payment) -> STORY-123-add-payment/payment-service
+  checkout-service (STORY-123-add-payment) -> STORY-123-add-payment/checkout-service
+STORY-456-redesign-checkout
+  frontend (STORY-456-redesign-checkout) -> STORY-456-redesign-checkout/frontend
 ```
 
 Empty features (created with `xf new` but without worktrees yet) are shown with `(empty)`.
@@ -483,10 +478,10 @@ export XF_REPOS_DIR=~/projects/project-x/repos
 export XF_FEATURES_DIR=~/projects/project-x/features
 ```
 
-| Variable          | Description                                    | Default                 |
-| ----------------- | ---------------------------------------------- | ----------------------- |
-| `XF_REPOS_DIR`    | Directory containing source git repositories   | `~/workspace/repos`     |
-| `XF_FEATURES_DIR` | Directory where feature worktrees are created  | `~/workspace/features`  |
+| Variable          | Description                                   | Default                |
+| ----------------- | --------------------------------------------- | ---------------------- |
+| `XF_REPOS_DIR`    | Directory containing source git repositories  | `~/workspace/repos`    |
+| `XF_FEATURES_DIR` | Directory where feature worktrees are created | `~/workspace/features` |
 
 Paths can be absolute (`/tmp/repos`), relative (`./repos`), or tilde-based (`~/repos`). All are resolved correctly.
 
