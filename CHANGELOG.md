@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.0 - 2026-04-13
+
+### Added
+
+- Shell integration improved with better tab completion for nested repositories
+
+### Changed
+
+- `xf list` output simplified — flat list format instead of tree-like
+- `xf list --path` now shows relative paths from XF_FEATURES_DIR
+
+### Fixed
+
+- `xf add --from <branch>` now works correctly with branches that only exist remotely (using `git fetch --prune --prune-tags`)
+
 ## 0.4.0 - 2026-04-08
 
 ### Added
