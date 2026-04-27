@@ -21,24 +21,28 @@ pub fn create_worktree(
         .args(["-C", source_repo.to_str().unwrap(), "worktree", "prune"])
         .output();
 
-    let mut args = vec![
-        "-C",
-        source_repo.to_str().unwrap(),
-        "worktree",
-        "add",
-        worktree_path.to_str().unwrap(),
+    let mut args: Vec<String> = vec![
+        "-C".into(),
+        source_repo.to_str().unwrap().into(),
+        "worktree".into(),
+        "add".into(),
+        worktree_path.to_str().unwrap().into(),
     ];
 
     if let Some(from) = from_branch {
-        args.push(from);
+        if branch_exists(source_repo, from) {
+            args.push(from.into());
+        } else {
+            args.push(format!("origin/{from}"));
+        }
     }
 
     let branch_exists_locally = branch_exists(source_repo, branch_name);
 
     if !branch_exists_locally {
-        args.push("-b");
+        args.push("-b".into());
     }
-    args.push(branch_name);
+    args.push(branch_name.into());
 
     let output = Command::new("git")
         .args(&args)
