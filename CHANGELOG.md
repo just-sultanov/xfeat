@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.5.1 - 2026-04-27
+
+### Fixed
+
+- `xf add --from <branch>` now resolves remote-only branches by prepending `origin/` prefix when the branch isn't checked out locally
+
 ## 0.5.0 - 2026-04-13
 
 ### Added
