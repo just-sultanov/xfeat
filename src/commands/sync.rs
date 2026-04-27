@@ -206,7 +206,7 @@ mod tests {
                 .status()
                 .expect("failed to set HEAD to master");
 
-            let clone_path = self.tmp.join(format!("temp-clone-{}", name));
+            let clone_path = self.tmp.join(format!("temp-clone-{name}"));
             Command::new("git")
                 .args([
                     "clone",
@@ -267,7 +267,7 @@ mod tests {
         }
 
         fn setup_source_repo_with_master(&self, name: &str, bare_path: &Path) -> PathBuf {
-            let work_path = self.tmp.join(format!("source-master-{}", name));
+            let work_path = self.tmp.join(format!("source-master-{name}"));
             fs::create_dir_all(&work_path).unwrap();
 
             Command::new("git")
@@ -526,8 +526,7 @@ mod tests {
         let log2_str = String::from_utf8_lossy(&log2.stdout);
         assert!(
             log2_str.contains("update on master") || log2_str.contains("update on main"),
-            "repo-master should have the update commit, got: {}",
-            log2_str
+            "repo-master should have the update commit, got: {log2_str}"
         );
     }
 
